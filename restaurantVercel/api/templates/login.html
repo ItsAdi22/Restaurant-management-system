@@ -1,0 +1,19 @@
+{% extends 'header.html' %}
+
+{% block content %}
+<div class="container">
+	<div class="form-group">
+		<form method="post" action="/login" >
+			<h2>Login Form</h2>
+			<b>Enter Email:</b>
+			<input type="email" name="email" required><br><br>
+			
+			<b>Enter Password:</b>
+			<input type="password" name="password" required><br><br>
+
+			<input type="submit" class="btn btn-primary" value="Submit"><br><hr>
+			<a href="{{url_for('register')}}">New User? Register instead</a>
+	</div>
+</div>
+</form>
+{% endblock content %}

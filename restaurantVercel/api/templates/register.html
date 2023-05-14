@@ -1,0 +1,29 @@
+{% extends 'header.html' %}
+
+{% block content %}
+
+<form method="post" action="/register" >
+	<div class="mainform">
+
+
+		<div class="container">
+			<h2>Registration Form</h2>
+			<b>Enter Name:</b>
+			<input type="text" name="name" required><br><br>
+			
+			<b>Enter Email:</b>
+			<input type="email" name="email" required><br><br>
+			
+			<b>Enter Password:</b>
+			<input type="password" name="password" id="password" required><br><br>
+
+			<b>Confirm Password:</b>
+			<input type="password" name="confirmpass" id="confirmpass" required><br> <br>
+
+			<input type="submit"  class="btn btn-primary" value="submit"><br> <hr>
+			
+			<a href="{{url_for ('login')}}">Already registered? Login instead</a>
+		</div>
+	</form>
+</div>
+{% endblock content %}
