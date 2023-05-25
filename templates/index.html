@@ -1,0 +1,51 @@
+{% extends 'header.html' %}
+
+{% block content %}
+
+<div class="container">
+
+    <a href="{{url_for('index')}}">
+        <div class="store-cover-wrapper">
+            <div class="store-cover-background" style="background-image: url({{url_for('static',filename='bg.jpeg')}});"></div>
+        </div>
+    </a>
+  
+    <br><br>
+    <div class="row">
+      <div class="col-4">
+        <div class="card mx-auto" style="width: 20rem;">
+          <img src="{{url_for('static',filename='coffee.jpeg')}}" class="card-img-top" alt="Coffee">
+          <div class="card-body">
+            <h5 class="card-title">Beverages</h5>
+            <p class="card-text">Our coffee is freshly roasted and brewed to perfection. Try our signature espresso or a creamy latte.</p>
+            <a href="{{url_for('beverages')}}" class="btn btn-primary">View Menu</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="card mx-auto" style="width: 20rem;">
+          <img src="{{url_for('static',filename='breakfast.jpeg')}}" class="card-img-top" alt="Breakfast">
+          <div class="card-body">
+            <h5 class="card-title">Breakfast</h5>
+            <p class="card-text">Start your day off right with a hearty breakfast from Vintage Machine Cafe. Choose from a variety of options, including omelettes, pancakes, and more.</p>
+            <a href="{{url_for('breakfast')}}" class="btn btn-primary">View Menu</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="card mx-auto" style="width: 20rem;">
+          <img src="{{url_for('static',filename='lunch.jpeg')}}" class="card-img-top" alt="Lunch">
+          <div class="card-body">
+            <h5 class="card-title">Lunch</h5>
+            <p class="card-text">Satisfy your midday cravings with a delicious lunch from Vintage Machine Cafe. Choose from a selection of sandwiches, salads, and more.</p>
+            <a href="{{url_for('lunch')}}" class="btn btn-primary">View Menu</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  
+{% endblock %}
+

@@ -1,0 +1,33 @@
+{% extends 'header.html' %}
+
+{% block content %}
+
+{% if price %}
+<div class="container">
+    <table>
+      <tr>
+        <th>Items</th>
+        <th>Checkout ID</th>
+        <th>Amount Paid</th>
+      </tr>
+      {% for i in range(price|length) %}
+      <tr>
+        <td>{{item[i][-1]}}</td>  
+        <td>{{stripeid[i][-1]}}</td>  
+        <td>₹{{price[i][-1]}}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+{% else%}  
+<div class="container">
+    <center>
+        <h1 style="color: #4360DF;">No orders found!</h1>
+        <button class="btn btn-primary" onclick="location.replace('/')">Place New Order</button>
+    </center>
+    
+
+</div>
+{% endif %}  
+
+{% endblock %}
