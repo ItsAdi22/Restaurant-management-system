@@ -1,0 +1,47 @@
+{% extends 'header.html' %}
+
+{% block content %}
+    {% if 'name' in session %}
+            
+          <style>
+            body {
+              text-align: center;
+              padding: 40px 0;
+              background: rgb(11,12,15);
+            }
+            h2 {
+                color: #88B04B;
+                font-family: "Nunito Sans", "Helvetica Neue", sans-serif;
+                font-weight: 900;
+                font-size: 40px;
+                margin-bottom: 10px;
+              }
+            i {
+              color: #88B04B;
+              font-size: 100px;
+              line-height: 200px;
+              margin-left:-15px;
+            }
+            .card {
+              background: rgb(0, 0, 0);
+              color: white;
+              padding: 60px;
+
+              display: inline-block;
+              margin: 0 auto;
+            }
+          </style>
+          <body>
+            <div class="card">
+            <div style="border-radius:200px; height:200px; width:200px; background: rgb(11,12,15); margin:0 auto;">
+              <i class="checkmark">✓</i>
+            </div>
+              <h2>Order Placed</h2> 
+             <p>Your food will be ready within 20mins</p><br>
+              <a href="{{url_for('index')}}"><button class="btn btn-primary">Go to Home page</button></a>
+            </div>
+          </body>
+
+            
+    {% endif %}        
+{% endblock content %}    

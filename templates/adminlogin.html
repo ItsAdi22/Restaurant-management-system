@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <link rel="stylesheet" href="{{url_for('static', filename='admin.css')}}">
+    <script src="{{url_for('static', filename='admin.js')}}"></script>
+    <title>Admin Login</title>
+</head>
+
+<body>
+    <div class="login-page">
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for msg in messages %}
+            <div class="alert alert-info" role="alert">{{msg}}</div>
+            {% endfor %}
+        {% endif %}
+      {% endwith %}
+        <div class="form">
+            <h2>Administrator Login</h2>
+            {% if noacc == True %}
+            <form class="login-form" action="{{url_for('adminauth')}}" method="post">
+                <input type="text" placeholder="Set Username" name="setUsername" />
+                <input type="email" placeholder="Set Email" name="setEmail" />
+                <input type="password" placeholder="Set Password" name="setPassword"/>
+                <input type="submit" value="submit" >
+                
+            </form>
+            {% else %}
+            <form class="login-form" action="{{url_for('adminlogin')}}" method="post">
+                <input type="text" placeholder="username" name="adminUsername" />
+                <input type="password" placeholder="password" name="adminPassword"/>
+                <input type="submit" value="submit" >
+                <a href="{{url_for('forgetpass')}}">Forgot password ?</a>
+            </form>
+            {% endif %}
+
+        </div>
+    </div>
+</body>
+
+</html>
