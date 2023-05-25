@@ -52,14 +52,7 @@ def createMissingTables():
    except Exception as e:
       flash(f"Error creating tables: {e}")
 
-# def sendemail(email,body,subject):
-#    with app.app_context():
-#       msg = Message(subject, recipients=[email], body=body)
-#       mail.send(msg)
-#       if mail.send(msg):
-#          print(f'{subject} | Email Sent')
-#       else:
-#          flash('AN ERROR OCCURRED')
+#error email code removed
 
 def sendemail(email, body, subject):
     with app.app_context():
