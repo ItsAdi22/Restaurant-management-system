@@ -1,0 +1,137 @@
+{% extends 'adminheader.html' %}
+
+{% block homenav %}
+<form action="{{url_for('admin')}}" method="post"> 
+    <!-- <input type="hidden" name="form_type" value="admin_food"> -->
+    <input type="submit" class="list-group-item list-group-item-action active" value="Home">
+</form>
+{% endblock homenav %}
+
+{% block content %}
+
+
+    <div class="parent">
+        <div class="row g-4">
+            <div class="col-sm-6 col-xl-3">
+                <div class="bg-primary rounded d-flex align-items-center justify-content-between p-4">
+                    <img src="{{url_for('static',filename='cash.svg')}}" alt="cash">
+                    <div class="ms-3">
+                        <p class="mb-2" style="color: white;">Today's Sales</p>
+                        <h6 class="mb-0" style="color: white;">₹{{todaySales[0]}}</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+                <div class="bg-success rounded d-flex align-items-center justify-content-between p-4">
+                    <img src="{{url_for('static',filename='payments.svg')}}" alt="payments">
+                        
+                        
+                    <div class="ms-3">
+                        <p class="mb-2" style="color: white;">Total Sales</p>
+                        <h6 class="mb-0" style="color: white;">₹{{totalSales[0]}}</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+                <div class="bg-warning rounded d-flex align-items-center justify-content-between p-4">
+                    <img src="{{url_for('static',filename='cart.svg')}}" alt="restaurant">
+                    <div class="ms-3">
+                        <p class="mb-2" style="color: white;">Pending Sales</p>
+                        <h6 class="mb-0" style="color: white;">₹{{pendingSales[0]}}</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+                <div class="bg-secondary rounded d-flex align-items-center justify-content-between p-4">
+                    <img src="{{url_for('static',filename='order.svg')}}" alt="order">
+                    <div class="ms-3">
+                        <p class="mb-2" style="color: white;">Total Orders</p>
+                        <h6 class="mb-0" style="color: white;">{{totalOrders}}</h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+ 
+
+
+
+ <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+ <script type="text/javascript">
+   google.charts.load('current', {'packages':['corechart']});
+   google.charts.setOnLoadCallback(drawChart);
+
+   function drawChart() {
+        var data = google.visualization.arrayToDataTable([
+          ['Date', 'Amount'],
+          
+          {% for a,b in sales %}
+          ['{{a}}',{{b}}],
+          {% endfor %}
+        ]);
+
+     var options = {
+       title: 'Restaurant Weekly Sales',
+       curveType: 'function',
+       legend: { position: 'bottom' }
+     };
+
+     var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
+
+     chart.draw(data, options);
+   }
+ </script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+      google.charts.load('current', {'packages':['corechart']});
+      google.charts.setOnLoadCallback(drawChart);
+
+      function drawChart() {
+
+        var data = google.visualization.arrayToDataTable([
+        ['Task', 'Hours per Day'],
+        {% for a,b in allitems %}  
+          ['{{a}}',     {{b}}],
+        {% endfor %}
+        ]);
+
+        var options = {
+          title: 'Most Ordered Items'
+        };
+
+        var chart = new google.visualization.PieChart(document.getElementById('piechart'));
+
+        chart.draw(data, options);
+      }
+    </script>
+
+<style>
+    .parent1 {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+    }
+    
+    .child1, .child2 {
+      width: 100%;
+      height: 30vw;
+      background-color: #f0f0f0;
+      padding: 10px;
+      margin: 1%;
+      border: 1px solid #ccc;
+    }
+    
+    @media (min-width: 800px) {
+      .child1, .child2 {
+        width: 48%;
+      }
+    }
+    </style>
+    
+    <div class="parent1">
+      <div class="child1" id="curve_chart"></div>
+      <div class='child2' id="piechart"></div>
+    </div>
+ 
+{% endblock content %}
