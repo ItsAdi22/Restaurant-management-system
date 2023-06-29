@@ -1,0 +1,11 @@
+{
+    "builds": [
+      {
+        "use": "@vercel/python",
+        "config": {
+          "includeFiles": ["requirements.txt"]
+        }
+      }
+    ]
+  }
+  
