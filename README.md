@@ -2,7 +2,7 @@
 
 ## This project is free to use and anyone can contribute to it | Just give me credits `:)`
 
-# --------------------------------------------------------------------------
+# ---------------------------------------------------------------
 
 ### Installation:
 
@@ -12,6 +12,7 @@
 - fill up email authentication details in config.py (optional but might get error)
 - import the demo sql file provided
 
+# ---------------------------------------------------------------
 ### Note: You must create an account at stripe.com and get your api keys! 
 ### Also Note: Admin account needs to be verified before accessing the dashboard (therefore you will need to setup smpt)
 
@@ -19,7 +20,7 @@
 - go to this address `127.0.0.1` or `localhost` or `yourdomain.com`
 - Admin panel: `127.0.0.1/admin` or `localhost/admin` or `yourcomain.com/admin`
 
-# --------------------------------------------------------------------------
+# ---------------------------------------------------------------
 
 Issues:
   - No implementation of csrf tokens
