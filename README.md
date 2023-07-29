@@ -32,8 +32,7 @@ Issues:
 
 
 
+
 ### <span style="color:green"> My discord: itsadi22 </span>
 Ask me if you need any help `:wink:`
-
-
 [Contact me](mailto:itsadi22.zil@ud.me)
