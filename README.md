@@ -13,8 +13,10 @@
 - import the demo sql file provided
 
 # ---------------------------------------------------------------
+<span color='red'>
 ### Note: You must create an account at stripe.com and get your api keys! 
 ### Also Note: Admin account needs to be verified before accessing the dashboard (therefore you will need to setup smpt)
+</span>
 
 ### Usage:
 - go to this address `127.0.0.1` or `localhost` or `yourdomain.com`
@@ -26,3 +28,8 @@ Issues:
   - No implementation of csrf tokens
   - Form fields not are secured
   - password in mysql file is not hashed 
+
+
+
+### <span color="green"> My discord: itsadi22 </span>
+Ask me if you need any help `:wink:`
