@@ -6,16 +6,17 @@
 
 ### Installation:
 
-###### - git clone this repo
-###### - `pip install -r requirements.txt`
-###### - create a database in your mysql server and update its info in config.py
-###### - fill up email authentication details in config.py (optional but might get error)
-###### - import the demo sql file provided
+- git clone this repo
+- `pip install -r requirements.txt`
+- create a database in your mysql server and update its info in config.py
+- fill up email authentication details in config.py (optional but might get error)
+- import the demo sql file provided
 
 ##### Note: You must create an account at stripe.com and get your api keys! 
 
 # --------------------------------------------------------------------------
+
 Issues:
-  No implementation of csrf tokens
-  Form fields not are secured
-  password in mysql file is not hashed
+  - No implementation of csrf tokens
+  - Form fields not are secured
+  - password in mysql file is not hashed 
