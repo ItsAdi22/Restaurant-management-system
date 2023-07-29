@@ -7,8 +7,10 @@ import datetime
 import random
 import threading
 import secrets
-import config
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
 regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
 
@@ -18,20 +20,20 @@ tableno = None
 additionalNote = None
 otp = None
 
-app.config["SECRET_KEY"] = config.SECRET_KEY
+app.config["SECRET_KEY"] = os.getenv('SECRET_KEY')
 
-app.config["MYSQL_HOST"] = config.MYSQL_HOST
-app.config["MYSQL_DB"] = config.MYSQL_DB
-app.config["MYSQL_USER"] = config.MYSQL_USER
-app.config["MYSQL_PASSWORD"] = config.MYSQL_PASSWORD
+app.config["MYSQL_HOST"] = os.getenv('MYSQL_HOST')
+app.config["MYSQL_DB"] = os.getenv('MYSQL_DB')
+app.config["MYSQL_USER"] = os.getenv('MYSQL_USER')
+app.config["MYSQL_PASSWORD"] = os.getenv('MYSQL_PASSWORD')
 
-app.config['MAIL_DEFAULT_SENDER'] = config.MAIL_DEFAULT_SENDER
-app.config['MAIL_SERVER'] = config.MAIL_SERVER
-app.config['MAIL_PORT'] = config.MAIL_PORT
-app.config['MAIL_USE_TLS'] = config.MAIL_USE_TLS
-app.config['MAIL_USE_SSL'] = config.MAIL_USE_SSL
-app.config['MAIL_USERNAME'] = config.MAIL_USERNAME
-app.config['MAIL_PASSWORD'] = config.MAIL_PASSWORD
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')
+app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER')
+app.config['MAIL_PORT'] = os.getenv('MAIL_PORT')
+app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS')
+app.config['MAIL_USE_SSL'] = os.getenv('MAIL_USE_SSL')
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
 
 mysql = MySQL(app)
 mail = Mail(app)
