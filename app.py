@@ -1406,4 +1406,4 @@ def test():
       return redirect(url_for('admin'))
 
 if __name__ == '__main__':
-   app.run(debug=True,host=config.domain, port=config.port)
+   app.run(debug=True,host=domain, port=port)
