@@ -65,13 +65,13 @@ def sendemail(email, body, subject):
     with app.app_context():
         msg = Message(subject, recipients=[email], body=body)
         try:
+            mail.connect()
             mail.send(msg)
             print(f'{subject} | Email Sent')
+        
         except Exception as e:
             with app.test_request_context():
-               e = f'An error occurred while sending email to {email}. Error message: {str(e)}'
-               print(e)
-               return render_template('error.html',e=e)
+               print(f'An error occurred while sending email to {email}. Error message: {str(e)}')
 
 
 
