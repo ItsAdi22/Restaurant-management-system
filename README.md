@@ -13,6 +13,7 @@
 - import the demo sql file provided
 
 ### Note: You must create an account at stripe.com and get your api keys! 
+### Also Note: Admin account needs to be verified before accessing the dashboard (therefore you will need to setup smpt)
 
 ### Usage:
 - go to this address `127.0.0.1` or `localhost` or `yourdomain.com`
