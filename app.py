@@ -35,6 +35,9 @@ app.config['MAIL_USE_SSL'] = os.getenv('MAIL_USE_SSL')
 app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
 app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
 
+domain = os.getenv('domain')
+port = os.getenv('port')
+
 mysql = MySQL(app)
 mail = Mail(app)
 
@@ -1194,8 +1197,8 @@ def create_checkout_session():
             }
             
          ],
-         success_url=f"http://{config.domain}:{config.port}/" + "success?session_id={CHECKOUT_SESSION_ID}",
-         cancel_url=f"http://{config.domain}:{config.port}/",
+         success_url=f"http://{domain}:{port}/" + "success?session_id={CHECKOUT_SESSION_ID}",
+         cancel_url=f"http://{domain}:{port}/",
       )
 
       # Return the checkout session ID
