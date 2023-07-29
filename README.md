@@ -8,8 +8,9 @@
 
 - git clone this repo
 - `pip install -r requirements.txt`
-- create a database in your mysql server and update its info in config.py
-- fill up email authentication details in config.py (optional but might get error)
+- Create a file called `.env` and copy contents of `.env.example` in it. `(website wont run without this file)`
+- fill mysql database details in your `.env` file
+- fill up email authentication details in `.env` (optional but might get error)
 - import the demo sql file provided
 
 # ---------------------------------------------------------------
