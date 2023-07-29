@@ -13,10 +13,10 @@
 - import the demo sql file provided
 
 # ---------------------------------------------------------------
-<span color='red'>
-### Note: You must create an account at stripe.com and get your api keys! 
+
+### <span color='red'>Note: You must create an account at stripe.com and get your api keys! </span>
 ### Also Note: Admin account needs to be verified before accessing the dashboard (therefore you will need to setup smpt)
-</span>
+
 
 ### Usage:
 - go to this address `127.0.0.1` or `localhost` or `yourdomain.com`
