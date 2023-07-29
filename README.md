@@ -34,3 +34,6 @@ Issues:
 
 ### <span style="color:green"> My discord: itsadi22 </span>
 Ask me if you need any help `:wink:`
+
+
+This is a <span style="color:red">red</span> word and this is a <span style="color:blue">blue</span> word.
