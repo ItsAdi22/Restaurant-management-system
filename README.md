@@ -12,7 +12,11 @@
 - fill up email authentication details in config.py (optional but might get error)
 - import the demo sql file provided
 
-##### Note: You must create an account at stripe.com and get your api keys! 
+### Note: You must create an account at stripe.com and get your api keys! 
+
+### Usage:
+- go to this address `127.0.0.1` or `localhost` or `yourdomain.com`
+- Admin panel: `127.0.0.1/admin` or `localhost/admin` or `yourcomain.com/admin`
 
 # --------------------------------------------------------------------------
 
