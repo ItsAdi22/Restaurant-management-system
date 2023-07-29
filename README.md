@@ -14,8 +14,9 @@
 
 # ---------------------------------------------------------------
 
-### <span color='red'>Note: You must create an account at stripe.com and get your api keys! </span>
-### Also Note: Admin account needs to be verified before accessing the dashboard (therefore you will need to setup smpt)
+
+### Note: <span style="color:red">You must create an account at stripe.com and get your api keys! </span>
+### <span style="color:red"> Also Note: Admin account needs to be verified before accessing the dashboard **(therefore you will need to setup smpt!)** </span>
 
 
 ### Usage:
@@ -31,5 +32,5 @@ Issues:
 
 
 
-### <span color="green"> My discord: itsadi22 </span>
+### <span style="color:green"> My discord: itsadi22 </span>
 Ask me if you need any help `:wink:`
