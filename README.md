@@ -1,4 +1,4 @@
-# Hello guys this is my first ever project I created in my second year in flask framework.
+# Hello, this is the first project I created in my second year using Flask framework.
 
 ## This project is free to use and anyone can contribute to it | Just give me credits `:)`
 
