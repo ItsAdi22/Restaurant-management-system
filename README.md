@@ -35,10 +35,11 @@ Issues:
 # ---------------------------------------------------------------
 
 ## I would appreciate any contribution to this project. Just Fork this repository and try to fix the above issues.
+## Once you are done, create a pull request
 
 
 # ---------------------------------------------------------------
-### <span style="color:green"> My discord: itsadi22 </span>
+### <span style="color:green"> My Discord: itsadi22 </span>
 Ask me if you need any help `:wink:`
 
 [Contact me](mailto:itsadi22.zil@ud.me)
