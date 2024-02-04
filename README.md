@@ -28,7 +28,7 @@
 
 Issues:
   - No implementation of csrf tokens
-  - Form fields not are secured
+  - Form fields are not secured
   - Passwords are not hashed
   - Public_key of payment gateway is exposed ⚠️
 
