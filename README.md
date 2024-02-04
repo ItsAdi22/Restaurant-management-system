@@ -1,4 +1,4 @@
-# Hello, this is the first project I created in my second year using Flask framework.
+# Hello! This is the first project I created using Flask framework in my second year.
 
 ## This project is free to use and anyone can contribute to it | Just give me credits `:)`
 
@@ -29,11 +29,15 @@
 Issues:
   - No implementation of csrf tokens
   - Form fields not are secured
-  - password in mysql file is not hashed 
+  - Passwords are not hashed
+  - Public_key of payment gateway is exposed ⚠️
+
+# ---------------------------------------------------------------
+
+## I would appreciate any contribution to this project. Just Fork this repository and try to fix the above issues.
 
 
-
-
+# ---------------------------------------------------------------
 ### <span style="color:green"> My discord: itsadi22 </span>
 Ask me if you need any help `:wink:`
 
