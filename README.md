@@ -1,7 +1,5 @@
 # Hello! This is the first project I created using Flask framework in my second year of engineering.
 
-## This project is free to use `:)`
-
 # ---------------------------------------------------------------
 
 ### Installation:
