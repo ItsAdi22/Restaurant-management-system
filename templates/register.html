@@ -2,28 +2,24 @@
 
 {% block content %}
 
-<form method="post" action="/register" >
-	<div class="mainform">
+<form method="post" action="{{ url_for('register') }}">
 
+        <div class="container" style="width:fit-content">
+            <h2>Registration Form</h2>
+            {{ form.hidden_tag() }}
+            <b>Enter Name:</b>
+            {{ form.userName(class="form-control", required=True) }}<br><br>
+            <b>Enter Email:</b>
+            {{ form.email(class="form-control", required=True) }}<br><br>
+            <b>Enter Password:</b>
+            {{ form.password(class="form-control", required=True) }}<br><br>
+            <b>Confirm Password:</b>
+            {{ form.confpass(class="form-control", required=True) }}<br><br>
+            
+			<input type="submit" class="btn btn-primary" value="Submit"><br><hr>
+            <a href="{{ url_for('login') }}">Already registered? Login instead</a>
+        </div>
 
-		<div class="container">
-			<h2>Registration Form</h2>
-			<b>Enter Name:</b>
-			<input type="text" name="name" required><br><br>
-			
-			<b>Enter Email:</b>
-			<input type="email" name="email" required><br><br>
-			
-			<b>Enter Password:</b>
-			<input type="password" name="password" id="password" required><br><br>
+</form>
 
-			<b>Confirm Password:</b>
-			<input type="password" name="confirmpass" id="confirmpass" required><br> <br>
-
-			<input type="submit"  class="btn btn-primary" value="submit"><br> <hr>
-			
-			<a href="{{url_for ('login')}}">Already registered? Login instead</a>
-		</div>
-	</form>
-</div>
 {% endblock content %}

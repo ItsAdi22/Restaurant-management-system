@@ -3,3 +3,6 @@ flask_mysqldb
 flask_mail
 stripe
 python-dotenv
+wtforms
+flask_wtf
+email_validator

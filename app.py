@@ -1,6 +1,7 @@
 from flask import Flask, render_template, url_for, redirect, request, session, flash
 from flask_mysqldb import MySQL
 from flask_mail import Mail,Message
+from forms import SignupForm, LoginForm
 import re
 import stripe
 import datetime
@@ -944,7 +945,12 @@ def page_not_found(e):
 
 @app.route('/login',methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':
+    form = LoginForm()
+   
+    if 'name' in session:
+      return render_template('index.html') 
+    
+    elif form.is_submitted() == True:
         email = request.form.get('email')
         password = request.form.get('password')
         
@@ -998,25 +1004,26 @@ def login():
                         
                else:
                   flash("Incorrect Email/Password")
-                  return render_template('login.html') 
+                  return render_template('login.html',form=form) 
                         
             except:
                 flash("No accounts exist, please create a new account")
                 return render_template('register.html') 
-    elif 'name' in session:
-        return render_template('index.html')  
+ 
 
-
-    return render_template('login.html',title = 'login')
+    else:
+      return render_template('login.html',title = 'login',form=form)
 
 @app.route('/register',methods = ['POST','GET'])
+@app.route('/signup',methods = ['POST','GET'])
 def register():
-   if request.method == 'POST':
+   form = SignupForm()
+   if form.is_submitted() == True:
        name = request.form.get('name') 
        email = request.form.get('email') 
        password = request.form.get('password')
-       confpass = request.form.get('confirmpass')
-       
+       confpass = request.form.get('confpass')
+
        try:
         cursor = mysql.connection.cursor()
        except Exception as e:
@@ -1032,27 +1039,13 @@ def register():
             account = cursor.fetchone()
             if account:
                 flash("Email already used! Please use different email address")
-                return render_template('register.html')
-
-            # check if name is valid
-            elif not re.match(r'[A-Za-z0-9]+', name):
-                flash('Enter Valid Name')
-                return render_template('register.html',title = 'Enter Valid Name')        
-
-            # check if email is valid
-            elif not re.match(r'[^@]+@[^@]+\.[^@]+', email):
-                flash('Enter Valid Email')
-                return render_template('register.html',title = 'Enter Valid Email')
-
-            #check if no data is provided
-            elif not name or not email or not password or not confpass:  
-                flash('Please fill all the details!')
-                return render_template('register.html')
+                return render_template('register.html',form=form)
 
             #check if password and confirm password is correct
             elif (password != confpass):
                 flash("password and confirmpassword field should match!")
-                return render_template('register.html',title = 'pass should match')
+                flash(f'pass: {password} confpass: {confpass}')
+                return render_template('register.html',title = 'pass should match',form=form)
 
             else:
                 sql = "INSERT INTO login(name,email,password) VALUES(%s,%s,%s)"
@@ -1064,7 +1057,7 @@ def register():
                 return redirect(url_for('login'))     
 
    else:
-      return render_template('register.html',title = 'Register')  
+      return render_template('register.html',title = 'Register',form=form)  
         
 
 @app.route('/logout',methods = ['POST','GET'])
