@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField,HiddenField, DateField, URLField, SelectField, RadioField, IntegerField, EmailField, FileField
+from wtforms import StringField, PasswordField, SubmitField,HiddenField, TextAreaField, URLField, SelectField, RadioField, IntegerField, EmailField, FileField
 from wtforms.validators import DataRequired, Email, Length
 
 
@@ -15,7 +15,12 @@ class LoginForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired()])
     submit = SubmitField('Login')
 
-class BeverageForm(FlaskForm):
+class menu(FlaskForm):
     item = HiddenField('Item')
-    price = HiddenField('Price')
     submit = SubmitField('Add to cart')
+
+class PaymentForm(FlaskForm):
+    ordering_type = SelectField('Ordering Type', choices=[('On premise', 'On premise'), ('Takeaway', 'Takeaway'), ('Delivery', 'Delivery')], validators=[DataRequired()])
+    pay_via = SelectField('Pay Via', choices=[('Credit/Debit Card', 'Credit/Debit Card')], validators=[DataRequired()])
+    table_no = StringField('Table No', validators=[DataRequired()])
+    message = TextAreaField('Message', render_kw={'rows': 3}, description='Leave empty if you don\'t want to send any custom message')

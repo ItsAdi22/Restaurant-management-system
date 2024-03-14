@@ -15,9 +15,9 @@
                         <p class="card-text">{{ y }}</p>
                         <p class="card-text">₹{{ a }}</p>
                         <form action="{{url_for('addtocart')}}" method="post"> 
-                            <input type="submit" class="btn btn-primary" value="Add to cart">
-                            <input type="text" name="item" value="{{x}}" hidden>
-                            <input type="text" name="price" value="{{a}}" hidden>
+                            {{ form.csrf_token }}
+                            {{ form.item(value=x) }}
+                            {{ form.submit(class="btn btn-primary") }}
                         </form>
                     </div>
                 </div>

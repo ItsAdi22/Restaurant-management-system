@@ -1,7 +1,7 @@
 from flask import Flask, render_template, url_for, redirect, request, session, flash
 from flask_mysqldb import MySQL
 from flask_mail import Mail,Message
-from forms import SignupForm, LoginForm, BeverageForm
+from forms import SignupForm, LoginForm, menu, PaymentForm
 import re
 import stripe
 import datetime
@@ -88,7 +88,7 @@ def index():
 
 @app.route('/beverages',methods=['GET','POST'])
 def beverages():
-   form = BeverageForm()
+   form = menu()
    if request.method=='POST':
       coffeetitle = request.form.get('foodtitle')
       coffeedescription = request.form.get('fooddescription')
@@ -134,6 +134,7 @@ def beverages():
 
 @app.route('/breakfast',methods=['GET','POST'])
 def breakfast():
+   form = menu()
    if request.method=='POST':
       breaktitle = request.form.get('foodtitle')
       breakdescription = request.form.get('fooddescription')
@@ -161,7 +162,7 @@ def breakfast():
             return redirect(request.referrer)
             
          else:
-            return render_template('breakfast.html', value=value)
+            return render_template('breakfast.html', value=value, form=form)
 
       except Exception as e:
          return render_template("error.html",e=e)
@@ -169,6 +170,7 @@ def breakfast():
 
 @app.route('/lunch',methods=['GET','POST'])
 def lunch():
+   form = menu()
    if request.method=='POST':
       lunchtitle = request.form.get('foodtitle')
       lunchdescription = request.form.get('fooddescription')
@@ -199,7 +201,7 @@ def lunch():
             flash("No Items In The Menu!")
             return redirect(request.referrer)
          else:
-            return render_template('lunch.html', value=value)
+            return render_template('lunch.html', value=value, form=form)
 
       except Exception as e:
          return render_template("error.html",e=e)
@@ -238,10 +240,11 @@ def addtocart():
             cursor.execute(query, (item, item, item))
             results = cursor.fetchall()
 
-            print(f'the item is: -------> {results} ----> {results[0]} ----> {results[0][0]}')
+            #print(f'the item is: -------> {results} ----> {results[0]} ----> {results[0][0]}')
             
             if results:
-               price = results[0][0]
+                  price = results[0][0]
+
             else:
                price = 100000
                flash("Please Contact An Administrator")
@@ -287,7 +290,8 @@ def addtocart():
 
 @app.route('/cart')
 def cart():
-   if 'name' in session:         
+   if 'name' in session:     
+      form = PaymentForm()    
       try:
          email = session['email']
          cursor = mysql.connection.cursor()
@@ -337,7 +341,7 @@ def cart():
          total_column = cursor.fetchone()
 
          cursor.close()
-         return render_template("cart.html",item=item,quantity=quantity,price=price,total=total,total_column=total_column,pubkey_formatted=pubkey_formatted)
+         return render_template("cart.html",item=item,quantity=quantity,price=price,total=total,total_column=total_column,pubkey_formatted=pubkey_formatted,form=form)
 
       except Exception as e:
          return render_template("error.html",e=e)
@@ -1183,51 +1187,59 @@ def stripekeys():
 
 @app.route('/pay',methods=['POST'])
 def create_checkout_session():
-   try:
-      global tableno
-      global additionalNote
-      tableno = request.form['tableno']
-      additionalNote = request.form['additionalNote']
-      cursor = mysql.connection.cursor()
-      cursor.execute("SELECT apikey FROM stripekeys")
-      
-      apikey = cursor.fetchone()
-      apikey_formatted = apikey[-1]
+   if 'name' in session:
+      try:
+         email = session['email']
 
-      stripe.api_key = apikey_formatted
-      
-      cartvalue = request.form['totalcartvalue']
+         global tableno
+         global additionalNote
+         tableno = request.form['tableno']
+         additionalNote = request.form['additionalNote']
+         
+         cursor = mysql.connection.cursor()
+         cursor.execute("SELECT apikey FROM stripekeys")
+         
+         apikey = cursor.fetchone()
+         apikey_formatted = apikey[-1]
 
-      cartvalstripe = (int(cartvalue)*100)
-      
-      # Create a Stripe checkout session
-      session = stripe.checkout.Session.create(
-         payment_method_types=["card"],
-         mode="payment",
-         line_items=[
-            {
-                  "price_data":{
-                     'unit_amount': cartvalstripe,
-                     'currency': 'INR',
-                     'product_data':{
-                        'name': 'Vintage Cafe Order',
-                        'description': f'Table No: {tableno}',
-                     }
-                  },
-                  "quantity": 1,
-            }
-            
-         ],
-         success_url=f"http://{domain}:{port}/" + "success?session_id={CHECKOUT_SESSION_ID}",
-         cancel_url=f"http://{domain}:{port}/",
-      )
+         stripe.api_key = apikey_formatted
+         
+         cursor.execute('SELECT SUM(total) FROM cart WHERE email = %s',(email,))
+         total_column = cursor.fetchone()
+         cartvalue = total_column[0]
 
-      # Return the checkout session ID
-      return session.id    
-   
-   except Exception as e:
-      flash(str(e))
-      return redirect(url_for('cart'))
+         cartvalstripe = (int(cartvalue)*100)
+         
+         # Create a Stripe checkout session
+         stripe_session  = stripe.checkout.Session.create(
+            payment_method_types=["card"],
+            mode="payment",
+            line_items=[
+               {
+                     "price_data":{
+                        'unit_amount': cartvalstripe,
+                        'currency': 'INR',
+                        'product_data':{
+                           'name': 'Vintage Cafe Order',
+                           'description': f'Table No: {tableno}',
+                        }
+                     },
+                     "quantity": 1,
+               }
+               
+            ],
+            success_url=f"http://{domain}:{port}/" + "success?session_id={CHECKOUT_SESSION_ID}",
+            cancel_url=f"http://{domain}:{port}/",
+         )
+
+         # Return the checkout session ID
+         return stripe_session.id    
+      
+      except Exception as e:
+         flash(str(e))
+         return redirect(url_for('cart'))
+   else:
+      return redirect(url_for('home'))
 
 @app.route("/success")
 def success():

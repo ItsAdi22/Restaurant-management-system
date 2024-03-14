@@ -33,34 +33,28 @@
 
 
 <div class="container" style="padding-top: 1%;">
-    <form action="/pay" method="post">
-        <div class="form-group">
-          <label for="orderingType" style="color: lightgrey">Ordering type</label>
-          <select class="form-control" id="orderingType" style="background-color: #131416; color: lightgrey">
-            <option>On premise</option>
-            <option>Takeaway</option>
-            <option>Delivery</option>
-          </select>
-        </div> <br>
-        <div class="form-group">
-          <label for="payVia" style="color: lightgrey">Pay via</label>
-          <select class="form-control" id="payVia" style="background-color: #131416; color: lightgrey">
-            <option>Credit/Debit Card</option>
-          </select>
-        </div> <br>
-        <div class="form-group">
-          <label for="tableNo" style="color: lightgrey">Table no</label>
-          <input type="number" class="form-control" name="tableno" style="background-color: #131416;  color: lightgrey" required>
-        </div> <br>
-        <div class="form-group">
-          <label for="message" style="color: lightgrey">Message</label>
-          <textarea class="form-control" id="message" rows="3" style="background-color: #131416; color: lightgrey" name="additionalNote"></textarea>
-          <sub style="color: grey;">Leave empty if you don't want to send any custom message</sub>
-        </div> <br> 
-        <br>
-        <input type="text" name="totalcartvalue" value="{{total_column[-1]}}" hidden>
-        <button type="submit" class="btn btn-primary" style="width: 100%; background-color: #4360DF; color: lightgrey">Submit</button>
-      </form>  
+  <form action="/pay" method="post">
+    {{ form.csrf_token }}
+    <div class="form-group">
+        <label for="orderingType" style="color: lightgrey">Ordering type</label>
+        {{ form.ordering_type(class="form-control", id="orderingType", style="background-color: #131416; color: lightgrey") }}
+    </div> <br>
+    <div class="form-group">
+        <label for="payVia" style="color: lightgrey">Pay via</label>
+        {{ form.pay_via(class="form-control", id="payVia", style="background-color: #131416; color: lightgrey") }}
+    </div> <br>
+    <div class="form-group">
+        <label for="tableNo" style="color: lightgrey">Table no</label>
+        {{ form.table_no(class="form-control", style="background-color: #131416; color: lightgrey") }}
+    </div> <br>
+    <div class="form-group">
+        <label for="message" style="color: lightgrey">Message</label>
+        {{ form.message(class="form-control", id="message", style="background-color: #131416; color: lightgrey") }}
+        <sub style="color: grey;">{{ form.message.description }}</sub>
+    </div> <br> 
+    <br>
+    <button type="submit" class="btn btn-primary" style="width: 100%; background-color: #4360DF; color: lightgrey">Submit</button>
+</form>
 </div> 
 
 <script src="https://js.stripe.com/v3/"></script>

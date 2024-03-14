@@ -19,8 +19,9 @@
 
 
 ### Usage:
-- go to this address `127.0.0.1` or `localhost` or `yourdomain.com`
-- Admin panel: `127.0.0.1/admin` or `localhost/admin` or `yourcomain.com/admin`
+- # To create all the mysql tables you need to visit `127.0.0.1/admin/login` or `localhost/admin/login` or `yourcomain.com/admin/login`
+- User Panel `127.0.0.1` or `localhost` or `yourdomain.com`
+- Admin Panel: `127.0.0.1/admin` or `localhost/admin` or `yourcomain.com/admin`
 
 # ---------------------------------------------------------------
 
@@ -34,7 +35,7 @@ Issues:
 # ---------------------------------------------------------------
 
 ## I would appreciate any contribution to this project. Just Fork this repository and try to fix the above issues.
-## Once you are done, create a pull request
+## Once you are done, submit a pull request
 
 
 # ---------------------------------------------------------------

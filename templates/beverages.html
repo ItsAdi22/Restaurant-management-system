@@ -17,7 +17,6 @@
                         <form action="{{ url_for('addtocart') }}" method="post"> 
                             {{ form.csrf_token }}
                             {{ form.item(value=x) }}
-                            {{ form.price(value=a) }}
                             {{ form.submit(class="btn btn-primary") }}
                         </form>
                         
