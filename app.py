@@ -1,7 +1,7 @@
 from flask import Flask, render_template, url_for, redirect, request, session, flash
 from flask_mysqldb import MySQL
 from flask_mail import Mail,Message
-from forms import SignupForm, LoginForm, MenuForm, PaymentForm, AddFoodForm
+from forms import SignupForm, LoginForm, MenuForm, PaymentForm, AddFoodForm, DeleteFoodForm
 import re
 import stripe
 import datetime
@@ -126,7 +126,7 @@ def beverages():
 
             else:
                flash("Contact Admin: ",x)
-               
+
             return redirect(request.referrer)
    else:
 
@@ -651,7 +651,7 @@ def setnewpass():
 @app.route('/admin',methods=['POST','GET'])
 @app.route('/admin/',methods=['POST','GET'])
 def admin():
-   form = AddFoodForm()
+   
    if 'admin' in session:
 
       adminMail = session.get('admin')
@@ -712,6 +712,9 @@ def admin():
             mail_password = 'Enter_value_here'
 
          if request.method == 'POST':
+            form = AddFoodForm()
+            form1 = DeleteFoodForm()
+            
             if request.form.get('form_type') == 'payment_gateway':
                paymentactive = True
                return render_template('adminpay.html', apikey=apikey,pubkey=pubkey,paymentactive=paymentactive)   
@@ -722,25 +725,32 @@ def admin():
          
             elif request.form.get('form_type') == 'admin_food':
                foodactive = True
-               return render_template('adminfood.html',title='Manage Food Menu',foodactive=foodactive, form=form)
+               return render_template('adminfood.html',title='Manage Food Menu',foodactive=foodactive, form=form, form1=form1)
             
             elif request.form.get('form_type') == 'admin_delfood':
-               foodName = request.form.get('foodName')
-               foodCategory = request.form.get('foodCategory')
                
-               cursor.execute(f"SELECT title FROM {foodCategory} WHERE title = %s", (foodName,))
-               delFoodFound = cursor.fetchone()
+               if form1.validate_on_submit() == True:
+                  foodName = request.form.get('foodName')
+                  foodCategory = request.form.get('foodCategory')
                
-               if delFoodFound:
-                  cursor.execute(f"DELETE FROM {foodCategory} WHERE title = %s", (delFoodFound,))
-                  mysql.connection.commit()
-                  flash(f'{foodName} deleted from the menu!')
+                  cursor.execute(f"SELECT title FROM {foodCategory} WHERE title = %s", (foodName,))
+                  delFoodFound = cursor.fetchone()
                
+                  if delFoodFound is not None:
+                     cursor.execute(f"DELETE FROM {foodCategory} WHERE title = %s", (delFoodFound,))
+                     mysql.connection.commit()
+                     flash(f'{foodName} deleted from the menu!')
+                  
+                  else:
+                     flash(f'{foodName} not found!')
+
                else:
-                  flash(f'{foodName} not found!')
+                  for x in form1.errors:
+                     flash(f'Enter valid {x} !')
+               cursor.close()      
                foodactive = True
-               cursor.close()
-               return render_template('adminfood.html',title='Manage Food Menu',foodactive=foodactive, form=form)
+               
+               return render_template('adminfood.html',title='Manage Food Menu',foodactive=foodactive, form1=form1, form=form)
             
             elif request.form.get('form_type') == 'admin_marketingNav':
                marketingMail = True

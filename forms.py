@@ -34,3 +34,9 @@ class AddFoodForm(FlaskForm):
     foodprice = IntegerField('Price', validators=[InputRequired(), NumberRange(min=0)])
     method = SelectField('Category', choices=[('/beverages', 'Beverages'), ('/breakfast', 'Breakfast'), ('/lunch', 'Lunch / Dinner')], validators=[InputRequired()])
     submit = SubmitField('Submit')
+
+class DeleteFoodForm(FlaskForm):
+    form_type = StringField('Form Type', validators=[InputRequired()], render_kw={"value": "admin_delfood"})
+    foodName = StringField('Food Item Title', validators=[InputRequired()], render_kw={"placeholder": "Item Name", "class": "form-control"})
+    foodCategory = SelectField('Category', choices=[('beverages', 'Beverages'), ('breakfast', 'Breakfast'), ('lunch', 'Lunch / Dinner')], validators=[InputRequired()], render_kw={"class": "form-control"})
+    submit = SubmitField('Delete', render_kw={"class": "btn btn-danger form-control"})

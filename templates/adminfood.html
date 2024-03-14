@@ -68,19 +68,17 @@
 
 	<div class="child2" style="background-color: #f0f0f0; padding: 10px; border: 1px solid #ccc;">
 		<h2 class="mb-4">Delete Food Items</h2>
-		<form action="{{url_for('admin')}}" method="post">
-			<input type="hidden" name="form_type" value="admin_delfood">
-			<label for="foodtitle">Food Item Title:</label>
-			<input type="text" name="foodName" placeholder="Item Name" class="form-control">
-
-			<label for="category">Category:</label>
-			<select name="foodCategory" class="form-control">
-				<option value="beverages">Beverages</option>
-				<option value="breakfast">Breakfast</option>
-				<option value="lunch">Lunch / Dinner</option>
-			</select>
-			<br>
-			<input type="submit" value="Delete" class="btn btn-danger form-control">
+		<form action="{{ url_for('admin') }}" method="post">
+			{{ form1.hidden_tag() }}
+			{{ form1.form_type() }} <!-- Render the hidden form_type field -->
+			
+			<label for="foodName">Food Item Title:</label>
+			{{ form1.foodName(class="form-control", id="foodName") }}
+			
+			<label for="foodCategory">Category:</label>
+			{{ form1.foodCategory(class="form-control", id="foodCategory") }}
+	
+			{{ form1.submit(class="btn btn-danger form-control") }}
 		</form>
 	</div>
 </div>
