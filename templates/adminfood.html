@@ -40,38 +40,29 @@
 	<div class="child1" style="background-color: #f0f0f0; padding: 10px; border: 1px solid #ccc;">
 		
 			<h2 class="mb-4">Add Food Items</h2>
-			<form action="/beverages"  id="myForm" method="POST">
-
-			<div class="form-group">
-				<label for="coffeeTitle">Title:</label>
-				<input type="text" name="foodtitle" class="form-control" >
-			</div>
-
-			<div class="form-group">
-				<label for="coffeeDescription">Description:</label>
-				<input type="text" name="fooddescription" class="form-control">
-			</div>
-
-			<div class="form-group">
-				<label for="coffeeimage">Image:</label>
-				<input type="url" name="foodurlimage" class="form-control" >    
-			</div> 
-
-			<div class="form-group">
-				<label for="price">Price:</label>
-				<input type="number" name="foodprice" class="form-control" > 
-			</div>
-
-			<div class="form-group">
-				<label for="category">Category</label>
-				<select name="method" id="method" class="form-control">
-					<option value="/beverages">Beverages</option>
-					<option value="/breakfast">Breakfast</option>
-					<option value="/lunch">Lunch / Dinner</option>
-				</select>
-			</div>
-
-			<button type="submit" class="btn btn-primary form-control">Submit</button>
+			<form method="post" action="/beverages" id="myForm">
+				{{ form.hidden_tag() }}
+				<div class="form-group">
+					<label for="foodtitle">Title:</label>
+					{{ form.foodtitle(class="form-control") }}
+				</div>
+				<div class="form-group">
+					<label for="fooddescription">Description:</label>
+					{{ form.fooddescription(class="form-control") }}
+				</div>
+				<div class="form-group">
+					<label for="foodurlimage">Image URL:</label>
+					{{ form.foodurlimage(class="form-control") }}
+				</div>
+				<div class="form-group">
+					<label for="foodprice">Price:</label>
+					{{ form.foodprice(class="form-control") }}
+				</div>
+				<div class="form-group">
+					<label for="method">Category:</label>
+					{{ form.method(class="form-control") }}
+				</div>
+				{{ form.submit(class="btn btn-primary form-control") }}
 			</form>
 	</div>
 

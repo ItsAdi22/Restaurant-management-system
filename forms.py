@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField,HiddenField, TextAreaField, URLField, SelectField, RadioField, IntegerField, EmailField, FileField
-from wtforms.validators import DataRequired, Email, Length, InputRequired, EqualTo
+from wtforms import StringField, PasswordField, SubmitField, HiddenField, TextAreaField, SelectField, EmailField, IntegerField
+from wtforms.validators import DataRequired, Email, Length, InputRequired, EqualTo, NumberRange, URL
 
 
 class SignupForm(FlaskForm):
@@ -24,3 +24,13 @@ class PaymentForm(FlaskForm):
     pay_via = SelectField('Pay Via', choices=[('Credit/Debit Card', 'Credit/Debit Card')], validators=[DataRequired()])
     table_no = StringField('Table No', validators=[DataRequired()])
     message = TextAreaField('Message', render_kw={'rows': 3}, description='Leave empty if you don\'t want to send any custom message')
+
+# admin section forms
+    
+class AddFoodForm(FlaskForm):
+    foodtitle = StringField('Title', validators=[InputRequired()])
+    fooddescription = StringField('Description', validators=[InputRequired()])
+    foodurlimage = StringField('Image URL', validators=[InputRequired(), URL()])
+    foodprice = IntegerField('Price', validators=[InputRequired(), NumberRange(min=0)])
+    method = SelectField('Category', choices=[('/beverages', 'Beverages'), ('/breakfast', 'Breakfast'), ('/lunch', 'Lunch / Dinner')], validators=[InputRequired()])
+    submit = SubmitField('Submit')

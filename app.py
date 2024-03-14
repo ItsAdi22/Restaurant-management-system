@@ -1,7 +1,7 @@
 from flask import Flask, render_template, url_for, redirect, request, session, flash
 from flask_mysqldb import MySQL
 from flask_mail import Mail,Message
-from forms import SignupForm, LoginForm, MenuForm, PaymentForm
+from forms import SignupForm, LoginForm, MenuForm, PaymentForm, AddFoodForm
 import re
 import stripe
 import datetime
@@ -88,29 +88,50 @@ def index():
 
 @app.route('/beverages',methods=['GET','POST'])
 def beverages():
-   form = MenuForm()
+   
    if request.method=='POST':
-      coffeetitle = request.form.get('foodtitle')
-      coffeedescription = request.form.get('fooddescription')
-      coffeeurlimage = request.form.get('foodurlimage')
-      coffeprice = request.form.get('foodprice')
+      form = AddFoodForm()
+      if form.validate_on_submit():
+         coffeetitle = request.form.get('foodtitle')
+         coffeedescription = request.form.get('fooddescription')
+         coffeeurlimage = request.form.get('foodurlimage')
+         coffeprice = request.form.get('foodprice')
 
-      try:
-         cursor = mysql.connection.cursor()
-         cursor.execute("CREATE TABLE IF NOT EXISTS beverages (user_id INT AUTO_INCREMENT PRIMARY KEY ,title VARCHAR(255), description VARCHAR(255), imagelink VARCHAR(255),price INT(255));")
-      except Exception as e:
-         return render_template("error.html",e=e)   
-         
+         try:
+            cursor = mysql.connection.cursor()
+            cursor.execute("CREATE TABLE IF NOT EXISTS beverages (user_id INT AUTO_INCREMENT PRIMARY KEY ,title VARCHAR(255), description VARCHAR(255), imagelink VARCHAR(255),price INT(255));")
+         except Exception as e:
+            return render_template("error.html",e=e)   
+            
+         else:
+            sql = "INSERT INTO beverages(title,description,imagelink,price) VALUES(%s,%s,%s,%s)"
+            value = (coffeetitle,coffeedescription,coffeeurlimage,coffeprice)
+            cursor.execute(sql,value)
+            mysql.connection.commit()
+            cursor.close()
+            return redirect(url_for('beverages'))
       else:
-         sql = "INSERT INTO beverages(title,description,imagelink,price) VALUES(%s,%s,%s,%s)"
-         value = (coffeetitle,coffeedescription,coffeeurlimage,coffeprice)
-         cursor.execute(sql,value)
-         mysql.connection.commit()
-         cursor.close()
-         return redirect(url_for('beverages'))
+         for x in form.errors:
+            if x == 'foodurlimage':
+               flash("Enter valid URL!")
+            
+            elif x == 'foodtitle':
+               flash("Enter valid title")
+            
+            elif x == 'fooddescription':
+               flash("Enter valid description")
+
+            elif x == 'foodprice':
+               flash("Enter valid amount!")
+
+            else:
+               flash("Contact Admin: ",x)
+               
+            return redirect(request.referrer)
    else:
 
       try:
+         form = MenuForm()
          cursor = mysql.connection.cursor()
 
          cursor.execute("SELECT title,description,imagelink,price FROM beverages")
@@ -630,6 +651,7 @@ def setnewpass():
 @app.route('/admin',methods=['POST','GET'])
 @app.route('/admin/',methods=['POST','GET'])
 def admin():
+   form = AddFoodForm()
    if 'admin' in session:
 
       adminMail = session.get('admin')
@@ -700,7 +722,7 @@ def admin():
          
             elif request.form.get('form_type') == 'admin_food':
                foodactive = True
-               return render_template('adminfood.html',title='Manage Food Menu',foodactive=foodactive)
+               return render_template('adminfood.html',title='Manage Food Menu',foodactive=foodactive, form=form)
             
             elif request.form.get('form_type') == 'admin_delfood':
                foodName = request.form.get('foodName')
@@ -718,7 +740,7 @@ def admin():
                   flash(f'{foodName} not found!')
                foodactive = True
                cursor.close()
-               return render_template('adminfood.html',title='Manage Food Menu',foodactive=foodactive)
+               return render_template('adminfood.html',title='Manage Food Menu',foodactive=foodactive, form=form)
             
             elif request.form.get('form_type') == 'admin_marketingNav':
                marketingMail = True
