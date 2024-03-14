@@ -1,7 +1,7 @@
 from flask import Flask, render_template, url_for, redirect, request, session, flash
 from flask_mysqldb import MySQL
 from flask_mail import Mail,Message
-from forms import SignupForm, LoginForm, menu, PaymentForm
+from forms import SignupForm, LoginForm, MenuForm, PaymentForm
 import re
 import stripe
 import datetime
@@ -88,7 +88,7 @@ def index():
 
 @app.route('/beverages',methods=['GET','POST'])
 def beverages():
-   form = menu()
+   form = MenuForm()
    if request.method=='POST':
       coffeetitle = request.form.get('foodtitle')
       coffeedescription = request.form.get('fooddescription')
@@ -134,7 +134,7 @@ def beverages():
 
 @app.route('/breakfast',methods=['GET','POST'])
 def breakfast():
-   form = menu()
+   form = MenuForm()
    if request.method=='POST':
       breaktitle = request.form.get('foodtitle')
       breakdescription = request.form.get('fooddescription')
@@ -170,7 +170,7 @@ def breakfast():
 
 @app.route('/lunch',methods=['GET','POST'])
 def lunch():
-   form = menu()
+   form = MenuForm()
    if request.method=='POST':
       lunchtitle = request.form.get('foodtitle')
       lunchdescription = request.form.get('fooddescription')
@@ -1050,43 +1050,44 @@ def login():
 @app.route('/signup',methods = ['POST','GET'])
 def register():
    form = SignupForm()
-   if form.is_submitted() == True:
-       name = request.form.get('name') 
-       email = request.form.get('email') 
-       password = request.form.get('password')
-       confpass = request.form.get('confpass')
+   if request.method == 'POST':
+      if form.validate_on_submit() == True:
+         name = request.form.get('name') 
+         email = request.form.get('email') 
+         password = request.form.get('password')
 
-       try:
-        cursor = mysql.connection.cursor()
-       except Exception as e:
-        flash(f"Database Error: {e}") 
-        return render_template('register.html',title = 'Database Error')  
-
-       else: 
-       
          try:
+            cursor = mysql.connection.cursor()
+         except Exception as e:
+            flash(f"Database Error: {e}") 
+            return render_template('register.html',title = 'Database Error')  
+
+         else: 
+         
+            try:
                cursor.execute("CREATE TABLE IF NOT EXISTS login (user_id INT AUTO_INCREMENT PRIMARY KEY ,name VARCHAR(255), email VARCHAR(255), password VARCHAR(255))")
-         finally:
-            cursor.execute('SELECT * FROM login WHERE email = %s',(email,))
-            account = cursor.fetchone()
-            if account:
-                flash("Email already used! Please use different email address")
-                return render_template('register.html',form=form)
+            finally:
+               cursor.execute('SELECT * FROM login WHERE email = %s',(email,))
+               account = cursor.fetchone()
+               if account:
+                  flash("Email already used! Please use different email address")
+                  return render_template('register.html',form=form)
 
-            #check if password and confirm password is correct
-            elif (password != confpass):
-                flash("password and confirmpassword field should match!")
-                flash(f'pass: {password} confpass: {confpass}')
-                return render_template('register.html',title = 'pass should match',form=form)
-
+               else:
+                  sql = "INSERT INTO login(name,email,password) VALUES(%s,%s,%s)"
+                  value = (name,email,password)
+                  cursor.execute(sql,value)
+                  mysql.connection.commit()
+                  cursor.close()
+                  flash("User Registration Successful !")
+                  return redirect(url_for('login'))     
+      else:
+         for x in form.errors:
+            if 'confpass' in x:
+               flash("password and confirm password fields should match!")
             else:
-                sql = "INSERT INTO login(name,email,password) VALUES(%s,%s,%s)"
-                value = (name,email,password)
-                cursor.execute(sql,value)
-                mysql.connection.commit()
-                cursor.close()
-                flash("User Registration Successful !")
-                return redirect(url_for('login'))     
+               flash(f"Enter a valid {x}")
+            return redirect(url_for('register'))
 
    else:
       return render_template('register.html',title = 'Register',form=form)  

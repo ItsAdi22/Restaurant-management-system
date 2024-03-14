@@ -1,13 +1,13 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField,HiddenField, TextAreaField, URLField, SelectField, RadioField, IntegerField, EmailField, FileField
-from wtforms.validators import DataRequired, Email, Length
+from wtforms.validators import DataRequired, Email, Length, InputRequired, EqualTo
 
 
 class SignupForm(FlaskForm):
-    userName = StringField('Username', validators=[DataRequired(), Length(min=4, max=20)])
+    name = StringField('Username', validators=[DataRequired(), Length(min=4, max=20)])
     email = EmailField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired(), Length(min=6)])
-    confpass = PasswordField('Confirm Password', validators=[DataRequired(), Length(min=6)])
+    confpass = PasswordField('Confirm Password', validators=[InputRequired(), EqualTo('password', message='Passwords must match')])
     submit = SubmitField('Sign Up')
 
 class LoginForm(FlaskForm):
@@ -15,7 +15,7 @@ class LoginForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired()])
     submit = SubmitField('Login')
 
-class menu(FlaskForm):
+class MenuForm(FlaskForm):
     item = HiddenField('Item')
     submit = SubmitField('Add to cart')
 
