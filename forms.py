@@ -40,3 +40,8 @@ class DeleteFoodForm(FlaskForm):
     foodName = StringField('Food Item Title', validators=[InputRequired()])
     foodCategory = SelectField('Category', choices=[('beverages', 'Beverages'), ('breakfast', 'Breakfast'), ('lunch', 'Lunch / Dinner')], validators=[InputRequired()], render_kw={"class": "form-control"})
     submit = SubmitField('Delete', render_kw={"class": "btn btn-danger form-control"})
+
+class StripeKeysForm(FlaskForm):
+    stripeApiKey = StringField('Stripe Api Key', validators=[InputRequired()])
+    stripePubKey = StringField('Stripe Publishable Key', validators=[InputRequired()])
+    submit = SubmitField('Submit')

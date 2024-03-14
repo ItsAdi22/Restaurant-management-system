@@ -1,7 +1,7 @@
 from flask import Flask, render_template, url_for, redirect, request, session, flash
 from flask_mysqldb import MySQL
 from flask_mail import Mail,Message
-from forms import SignupForm, LoginForm, MenuForm, PaymentForm, AddFoodForm, DeleteFoodForm
+from forms import SignupForm, LoginForm, MenuForm, PaymentForm, AddFoodForm, DeleteFoodForm, StripeKeysForm
 import re
 import stripe
 import datetime
@@ -714,10 +714,11 @@ def admin():
          if request.method == 'POST':
             form = AddFoodForm()
             form1 = DeleteFoodForm()
+            form2 = StripeKeysForm()
             
             if request.form.get('form_type') == 'payment_gateway':
                paymentactive = True
-               return render_template('adminpay.html', apikey=apikey,pubkey=pubkey,paymentactive=paymentactive)   
+               return render_template('adminpay.html', apikey=apikey,pubkey=pubkey,paymentactive=paymentactive,form2=form2)   
             
             elif request.form.get('form_type') == 'admin_email':
                emailactive = True
@@ -1140,80 +1141,83 @@ def logout():
 @app.route('/stripe',methods=['POST','GET'])
 def stripekeys():
    if request.method == 'POST':
-      api_key = request.form.get('stripeApiKey')
-      pub_key = request.form.get('stripePubKey')
+      form2 = StripeKeysForm()
 
-      try:
-         cursor = mysql.connection.cursor()
-         cursor.execute("CREATE TABLE IF NOT EXISTS stripekeys (id INT AUTO_INCREMENT PRIMARY KEY, apikey VARCHAR(255), pubkey VARCHAR(255))")
-      except Exception as e:
-        flash("Database Error")
-        return render_template('error.html',title = 'Database Error',e=e)  
-       
-      else: 
-         cursor.execute('select * from stripekeys')
-         keysfound = cursor.fetchone()
-         if keysfound is not None:
+      if form2.validate_on_submit():
+         api_key = request.form.get('stripeApiKey')
+         pub_key = request.form.get('stripePubKey')
+
+         try:
+            cursor = mysql.connection.cursor()
+            cursor.execute("CREATE TABLE IF NOT EXISTS stripekeys (id INT AUTO_INCREMENT PRIMARY KEY, apikey VARCHAR(255), pubkey VARCHAR(255))")
+         except Exception as e:
+            flash("Database Error")
+            return render_template('error.html',title = 'Database Error',e=e)  
+         
+         else: 
+            cursor.execute('select * from stripekeys')
+            keysfound = cursor.fetchone()
+            if keysfound is not None:
+               
+               if api_key != "" and pub_key != "":
+                  sql = "UPDATE stripekeys SET apikey = %s, pubkey = %s"
+                  value = (api_key, pub_key)
+                  cursor.execute(sql,value)
+                  mysql.connection.commit()
+               
+               elif api_key != "":
+                  sql = "UPDATE stripekeys SET apikey = %s"
+                  value = (api_key,)
+                  cursor.execute(sql,value)
+                  mysql.connection.commit()
+               
+               elif pub_key != "":
+                  sql = "UPDATE stripekeys SET pubkey = %s"
+                  value = (pub_key,)
+                  cursor.execute(sql,value)
+                  mysql.connection.commit()
+   
+               if api_key != "":
+                  try:
+                     stripe.api_key = api_key
+                     stripe.Account.retrieve()
+                  except stripe.error.AuthenticationError as e:
+                     flash("STRIPE API KEY IS INVALID")
+                  
+                  cursor.close() 
+                  flash("Stripe keys Updated!")
+                  return redirect(request.referrer)
             
-            if api_key != "" and pub_key != "":
-               sql = "UPDATE stripekeys SET apikey = %s, pubkey = %s"
-               value = (api_key, pub_key)
-               cursor.execute(sql,value)
-               mysql.connection.commit()
-            
-            elif api_key != "":
-               sql = "UPDATE stripekeys SET apikey = %s"
-               value = (api_key,)
-               cursor.execute(sql,value)
-               mysql.connection.commit()
-            
-            elif pub_key != "":
-               sql = "UPDATE stripekeys SET pubkey = %s"
-               value = (pub_key,)
-               cursor.execute(sql,value)
-               mysql.connection.commit()
- 
+            else:
+               if api_key != "" and pub_key != "":
+                  sql = "INSERT INTO stripekeys (apikey, pubkey) VALUES (%s, %s)"
+                  value = (api_key,pub_key)
+                  cursor.execute(sql,value)
+                  mysql.connection.commit()
+               
+               elif api_key != "":
+                  sql = "INSERT INTO stripekeys(apikey) VALUES(%s)"
+                  value = (api_key,)
+                  cursor.execute(sql,value)
+                  mysql.connection.commit()
+               
+               elif pub_key != "":
+                  sql = "INSERT INTO stripekeys(pubkey) VALUES(%s)"
+                  value = (pub_key,)
+                  cursor.execute(sql,value)
+                  mysql.connection.commit()
+               
+               cursor.close() 
             if api_key != "":
                try:
                   stripe.api_key = api_key
                   stripe.Account.retrieve()
                except stripe.error.AuthenticationError as e:
                   flash("STRIPE API KEY IS INVALID")
-               
-               cursor.close() 
-               flash("Stripe keys Updated!")
-               return redirect(request.referrer)
-         
-         else:
-            if api_key != "" and pub_key != "":
-               sql = "INSERT INTO stripekeys (apikey, pubkey) VALUES (%s, %s)"
-               value = (api_key,pub_key)
-               cursor.execute(sql,value)
-               mysql.connection.commit()
+                     
             
-            elif api_key != "":
-               sql = "INSERT INTO stripekeys(apikey) VALUES(%s)"
-               value = (api_key,)
-               cursor.execute(sql,value)
-               mysql.connection.commit()
-            
-            elif pub_key != "":
-               sql = "INSERT INTO stripekeys(pubkey) VALUES(%s)"
-               value = (pub_key,)
-               cursor.execute(sql,value)
-               mysql.connection.commit()
-            
-            cursor.close() 
-         if api_key != "":
-            try:
-               stripe.api_key = api_key
-               stripe.Account.retrieve()
-            except stripe.error.AuthenticationError as e:
-               flash("STRIPE API KEY IS INVALID")
-                  
-         
-         flash("Stripe keys added successfully!")
-         return redirect(request.referrer)
+            flash("Stripe keys added successfully!")
+            return redirect(request.referrer)
    else:
       return redirect(url_for('index'))
 
