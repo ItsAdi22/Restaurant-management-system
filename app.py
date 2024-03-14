@@ -729,7 +729,7 @@ def admin():
             
             elif request.form.get('form_type') == 'admin_delfood':
                
-               if form1.validate_on_submit() == True:
+               if form1.validate_on_submit():
                   foodName = request.form.get('foodName')
                   foodCategory = request.form.get('foodCategory')
                
