@@ -1,7 +1,7 @@
 from flask import Flask, render_template, url_for, redirect, request, session, flash
 from flask_mysqldb import MySQL
 from flask_mail import Mail,Message
-from forms import SignupForm, LoginForm
+from forms import SignupForm, LoginForm, BeverageForm
 import re
 import stripe
 import datetime
@@ -88,6 +88,7 @@ def index():
 
 @app.route('/beverages',methods=['GET','POST'])
 def beverages():
+   form = BeverageForm()
    if request.method=='POST':
       coffeetitle = request.form.get('foodtitle')
       coffeedescription = request.form.get('fooddescription')
@@ -111,19 +112,24 @@ def beverages():
 
       try:
          cursor = mysql.connection.cursor()
+
          cursor.execute("SELECT title,description,imagelink,price FROM beverages")
          value = cursor.fetchall()
          cursor.close()
          
+      except Exception as e:
+         return render_template("error.html",e=e)
+
+      else:
          if not value:
             flash("No Items In The Menu!")
             return redirect(request.referrer)
-         else:
-            return render_template('beverages.html', value=value)
+         
+         
+         return render_template('beverages.html', value=value, form=form)
 
 
-      except Exception as e:
-         return render_template("error.html",e=e)
+
 
 
 @app.route('/breakfast',methods=['GET','POST'])
@@ -203,7 +209,7 @@ def lunch():
 def addtocart():
       if request.method == 'POST':
          item = request.form['item']
-         price = request.form['price']
+         # price = request.form['price']
          
          try:
             email = session['email']
@@ -220,6 +226,28 @@ def addtocart():
             return render_template('error.html',e=e)
          
          else:
+         # Select price based on the item name
+            query = (
+        "SELECT price FROM beverages WHERE title = %s "
+        "UNION "
+        "SELECT price FROM breakfast WHERE title = %s "
+        "UNION "
+        "SELECT price FROM lunch WHERE title = %s"
+         )
+
+            cursor.execute(query, (item, item, item))
+            results = cursor.fetchall()
+
+            print(f'the item is: -------> {results} ----> {results[0]} ----> {results[0][0]}')
+            
+            if results:
+               price = results[0][0]
+            else:
+               price = 100000
+               flash("Please Contact An Administrator")
+               print("Please Contact An Administrator")
+
+
             cursor.execute("SELECT item FROM cart WHERE email = %s AND item = %s", (email,item))
             item_found = cursor.fetchone()
 

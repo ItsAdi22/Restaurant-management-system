@@ -14,10 +14,11 @@
                         <h5 class="card-title">{{ x }}</h5>
                         <p class="card-text">{{ y }}</p>
                         <p class="card-text">₹{{ a }}</p>
-                        <form action="{{url_for('addtocart')}}" method="post"> 
-                            <input type="text" name="item" value="{{x}}" hidden>
-                            <input type="text" name="price" value="{{a}}" hidden>
-                            <input type="submit" class="btn btn-primary" value="Add to cart">
+                        <form action="{{ url_for('addtocart') }}" method="post"> 
+                            {{ form.csrf_token }}
+                            {{ form.item(value=x) }}
+                            {{ form.price(value=a) }}
+                            {{ form.submit(class="btn btn-primary") }}
                         </form>
                         
                     </div>

@@ -29,6 +29,7 @@ Issues:
   - Form fields are not secured
   - Passwords are not hashed
   - Public_key of payment gateway is exposed ⚠️
+  - ~Item prices can be modified using inspect element~
 
 # ---------------------------------------------------------------
 
