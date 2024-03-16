@@ -1227,6 +1227,7 @@ def stripekeys():
 @app.route('/pay',methods=['POST'])
 def create_checkout_session():
    try:
+      email = session['email']
       global tableno
       global additionalNote
       tableno = request.form['tableno']
@@ -1238,8 +1239,11 @@ def create_checkout_session():
       apikey_formatted = apikey[-1]
 
       stripe.api_key = apikey_formatted
+      print(f'stripe api key: {apikey_formatted}')
       
-      cartvalue = request.form['totalcartvalue']
+      cursor.execute('SELECT SUM(total) FROM cart WHERE email = %s',(email,))
+      cartvalue = cursor.fetchone()
+      cartvalue = cartvalue[0]
 
       cartvalstripe = (int(cartvalue)*100)
       
@@ -1268,8 +1272,11 @@ def create_checkout_session():
       # Return the checkout session ID
       return session.id    
    
+   
    except Exception as e:
       flash(str(e))
+
+      print(f'ERROR OCCURRED: {e}')
       return redirect(url_for('cart'))
 
 @app.route("/success")

@@ -34,7 +34,7 @@
 
 <div class="container" style="padding-top: 1%;">
   <form action="/pay" method="post">
-    {{ form.csrf_token }}
+    
     <div class="form-group">
         <label for="orderingType" style="color: lightgrey">Ordering type</label>
         {{ form.ordering_type(class="form-control", id="orderingType", style="background-color: #131416; color: lightgrey") }}
@@ -62,7 +62,7 @@
   const stripe = Stripe("{{pubkey_formatted}}");
   document.querySelector("form").addEventListener("submit", async (event) => {
     event.preventDefault();
-
+    
     const formData = new FormData(event.target);
     const response = await fetch("/pay", {
       method: "POST",
@@ -71,6 +71,8 @@
     const checkoutSessionId = await response.text();
 
     stripe.redirectToCheckout({ sessionId: checkoutSessionId });
+
   });
+  
 </script>
 {% endblock %}
