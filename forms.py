@@ -22,8 +22,9 @@ class MenuForm(FlaskForm):
 class PaymentForm(FlaskForm):
     ordering_type = SelectField('Ordering Type', choices=[('On premise', 'On premise'), ('Takeaway', 'Takeaway'), ('Delivery', 'Delivery')], validators=[DataRequired()])
     pay_via = SelectField('Pay Via', choices=[('Credit/Debit Card', 'Credit/Debit Card')], validators=[DataRequired()])
-    table_no = StringField('Table No', validators=[DataRequired()])
+    table_no = IntegerField('Table No', validators=[DataRequired()])
     message = TextAreaField('Message', render_kw={'rows': 3}, description='Leave empty if you don\'t want to send any custom message')
+    submit = SubmitField('Submit')
 
 # admin section forms
     

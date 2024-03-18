@@ -1024,7 +1024,7 @@ def login():
         
         except:
             flash("Couldn't connect to the database")
-            return render_template('login.html',title = 'Database Error')  
+            return render_template('login.html',title = 'Database Error',form=form)  
         
         else:    
             try: 
@@ -1177,6 +1177,7 @@ def stripekeys():
                   cursor.execute(sql,value)
                   mysql.connection.commit()
    
+               # validate the stripe api key
                if api_key != "":
                   try:
                      stripe.api_key = api_key
@@ -1208,6 +1209,8 @@ def stripekeys():
                   mysql.connection.commit()
                
                cursor.close() 
+            
+            # validate api key
             if api_key != "":
                try:
                   stripe.api_key = api_key
@@ -1215,7 +1218,6 @@ def stripekeys():
                except stripe.error.AuthenticationError as e:
                   flash("STRIPE API KEY IS INVALID")
                      
-            
             flash("Stripe keys added successfully!")
             return redirect(request.referrer)
    else:
@@ -1224,59 +1226,59 @@ def stripekeys():
 
 @app.route('/pay',methods=['POST'])
 def create_checkout_session():
-   if 'name' in session:
-      try:
-         email = session['email']
-
-         global tableno
-         global additionalNote
-         tableno = request.form['tableno']
-         additionalNote = request.form['additionalNote']
-         
-         cursor = mysql.connection.cursor()
-         cursor.execute("SELECT apikey FROM stripekeys")
-         
-         apikey = cursor.fetchone()
-         apikey_formatted = apikey[-1]
-
-         stripe.api_key = apikey_formatted
-         
-         cursor.execute('SELECT SUM(total) FROM cart WHERE email = %s',(email,))
-         total_column = cursor.fetchone()
-         cartvalue = total_column[0]
-
-         cartvalstripe = (int(cartvalue)*100)
-         
-         # Create a Stripe checkout session
-         stripe_session  = stripe.checkout.Session.create(
-            payment_method_types=["card"],
-            mode="payment",
-            line_items=[
-               {
-                     "price_data":{
-                        'unit_amount': cartvalstripe,
-                        'currency': 'INR',
-                        'product_data':{
-                           'name': 'Vintage Cafe Order',
-                           'description': f'Table No: {tableno}',
-                        }
-                     },
-                     "quantity": 1,
-               }
-               
-            ],
-            success_url=f"http://{domain}:{port}/" + "success?session_id={CHECKOUT_SESSION_ID}",
-            cancel_url=f"http://{domain}:{port}/",
-         )
-
-         # Return the checkout session ID
-         return stripe_session.id    
+   email = session.get('email')
+   try:
       
-      except Exception as e:
-         flash(str(e))
-         return redirect(url_for('cart'))
-   else:
-      return redirect(url_for('home'))
+
+      global tableno
+      global additionalNote
+      tableno = request.form['tableno']
+      additionalNote = request.form['additionalNote']
+      cursor = mysql.connection.cursor()
+      cursor.execute("SELECT apikey FROM stripekeys")
+      
+      apikey = cursor.fetchone()
+      apikey_formatted = apikey[-1]
+
+      stripe.api_key = apikey_formatted
+      print(f'stripe api key: {apikey_formatted}')
+      
+      cursor.execute('SELECT SUM(total) FROM cart WHERE email = %s',(email,))
+      cartvalue = cursor.fetchone()
+      cartvalue = cartvalue[0]
+
+      cartvalstripe = (int(cartvalue)*100)
+      
+      # Create a Stripe checkout session
+      session_stripe = stripe.checkout.Session.create(
+         payment_method_types=["card"],
+         mode="payment",
+         line_items=[
+            {
+                  "price_data":{
+                     'unit_amount': cartvalstripe,
+                     'currency': 'INR',
+                     'product_data':{
+                        'name': 'Vintage Cafe Order',
+                        'description': f'Table No: {tableno}',
+                     }
+                  },
+                  "quantity": 1,
+            }
+            
+         ],
+         success_url=f"http://{domain}:{port}/" + "success?session_id={CHECKOUT_SESSION_ID}",
+         cancel_url=f"http://{domain}:{port}/",
+      )
+      
+      # Return the checkout session ID
+      return session_stripe.id    
+   
+   
+   except Exception as e:
+      flash(str(e))
+      print(f'ERROR OCCURRED: {e}')
+      return redirect(url_for('cart'))
 
 @app.route("/success")
 def success():
