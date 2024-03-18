@@ -1024,7 +1024,7 @@ def login():
         
         except:
             flash("Couldn't connect to the database")
-            return render_template('login.html',title = 'Database Error')  
+            return render_template('login.html',title = 'Database Error',form=form)  
         
         else:    
             try: 
@@ -1226,8 +1226,10 @@ def stripekeys():
 
 @app.route('/pay',methods=['POST'])
 def create_checkout_session():
+   email = session.get('email')
    try:
-      email = session['email']
+      
+
       global tableno
       global additionalNote
       tableno = request.form['tableno']
@@ -1248,7 +1250,7 @@ def create_checkout_session():
       cartvalstripe = (int(cartvalue)*100)
       
       # Create a Stripe checkout session
-      session = stripe.checkout.Session.create(
+      session_stripe = stripe.checkout.Session.create(
          payment_method_types=["card"],
          mode="payment",
          line_items=[
@@ -1268,14 +1270,13 @@ def create_checkout_session():
          success_url=f"http://{domain}:{port}/" + "success?session_id={CHECKOUT_SESSION_ID}",
          cancel_url=f"http://{domain}:{port}/",
       )
-
+      
       # Return the checkout session ID
-      return session.id    
+      return session_stripe.id    
    
    
    except Exception as e:
       flash(str(e))
-
       print(f'ERROR OCCURRED: {e}')
       return redirect(url_for('cart'))
 
