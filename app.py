@@ -1232,8 +1232,8 @@ def create_checkout_session():
 
       global tableno
       global additionalNote
-      tableno = request.form['tableno']
-      additionalNote = request.form['additionalNote']
+      tableno = request.form['table_no']
+      additionalNote = request.form['message']
       cursor = mysql.connection.cursor()
       cursor.execute("SELECT apikey FROM stripekeys")
       
