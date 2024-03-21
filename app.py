@@ -1,7 +1,7 @@
 from flask import Flask, render_template, url_for, redirect, request, session, flash
 from flask_mysqldb import MySQL
 from flask_mail import Mail,Message
-from forms import SignupForm, LoginForm, MenuForm, PaymentForm, AddFoodForm, DeleteFoodForm, StripeKeysForm, MarketingForm
+from forms import SignupForm, LoginForm, MenuForm, PaymentForm, AddFoodForm, DeleteFoodForm, StripeKeysForm, MarketingForm, CompleteOrderForm
 import re
 import stripe
 import datetime
@@ -718,6 +718,7 @@ def admin():
             form1 = DeleteFoodForm()
             form2 = StripeKeysForm()
             form3 = MarketingForm()
+            form4 = CompleteOrderForm()
             
             if request.form.get('form_type') == 'payment_gateway':
                paymentactive = True
@@ -853,9 +854,9 @@ def admin():
                cursor.execute('SELECT name,item,price,date,served from orders ORDER BY id DESC')
                allOrders = cursor.fetchall()
 
-               return render_template('adminmanageorders.html',adminManageOrders=adminManageOrders,pendingorders=pendingorders,allOrders=allOrders)
+               return render_template('adminmanageorders.html',adminManageOrders=adminManageOrders,pendingorders=pendingorders,allOrders=allOrders,form4=form4)
 
-            elif request.form.get('form_type') == 'admin_completeOrder':
+            elif form4.validate_on_submit():
                adminManageOrders = True
 
                stripeid = request.form.get('stripeid')
@@ -867,7 +868,7 @@ def admin():
                
                cursor.execute('SELECT name,item,price,date,served from ORDERS ORDER BY id DESC')
                allOrders = cursor.fetchall()
-               return render_template('adminmanageorders.html',adminManageOrders=adminManageOrders,pendingorders=pendingorders,allOrders=allOrders)
+               return render_template('adminmanageorders.html',adminManageOrders=adminManageOrders,pendingorders=pendingorders,allOrders=allOrders,form4=form4)
 
             elif request.form.get('form_type') == 'admin_deleteOrder':
                adminManageOrders = True
