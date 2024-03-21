@@ -1,7 +1,7 @@
 from flask import Flask, render_template, url_for, redirect, request, session, flash
 from flask_mysqldb import MySQL
 from flask_mail import Mail,Message
-from forms import SignupForm, LoginForm, MenuForm, PaymentForm, AddFoodForm, DeleteFoodForm, StripeKeysForm, MarketingForm, CompleteOrderForm
+from forms import SignupForm, LoginForm, MenuForm, PaymentForm, AddFoodForm, DeleteFoodForm, StripeKeysForm, MarketingForm, CompleteOrderForm, DeleteOrderForm
 import re
 import stripe
 import datetime
@@ -719,6 +719,7 @@ def admin():
             form2 = StripeKeysForm()
             form3 = MarketingForm()
             form4 = CompleteOrderForm()
+            form5 = DeleteOrderForm()
             
             if request.form.get('form_type') == 'payment_gateway':
                paymentactive = True
@@ -854,12 +855,14 @@ def admin():
                cursor.execute('SELECT name,item,price,date,served from orders ORDER BY id DESC')
                allOrders = cursor.fetchall()
 
-               return render_template('adminmanageorders.html',adminManageOrders=adminManageOrders,pendingorders=pendingorders,allOrders=allOrders,form4=form4)
+               return render_template('adminmanageorders.html',adminManageOrders=adminManageOrders,pendingorders=pendingorders,allOrders=allOrders,form4=form4,form5=form5)
 
             elif form4.validate_on_submit():
                adminManageOrders = True
 
                stripeid = request.form.get('stripeid')
+               print(f"form 4 in action: {stripeid}")
+               
                cursor.execute('UPDATE orders SET served = 1 WHERE stripeid = %s;',(stripeid,))
                mysql.connection.commit()
 
@@ -868,12 +871,13 @@ def admin():
                
                cursor.execute('SELECT name,item,price,date,served from ORDERS ORDER BY id DESC')
                allOrders = cursor.fetchall()
-               return render_template('adminmanageorders.html',adminManageOrders=adminManageOrders,pendingorders=pendingorders,allOrders=allOrders,form4=form4)
+               return render_template('adminmanageorders.html',adminManageOrders=adminManageOrders,pendingorders=pendingorders,allOrders=allOrders,form4=form4, form5=form5)
 
-            elif request.form.get('form_type') == 'admin_deleteOrder':
+            elif form5.validate_on_submit():
                adminManageOrders = True
-
                stripeid = request.form.get('stripeid')
+               print(f"form 5 in action: {stripeid}")
+
                cursor.execute('UPDATE orders SET served = 2 WHERE stripeid = %s;',(stripeid,))
                mysql.connection.commit()
 
@@ -882,7 +886,7 @@ def admin():
                
                cursor.execute('SELECT name,item,price,date,served from ORDERS')
                allOrders = cursor.fetchall()
-               return render_template('adminmanageorders.html',adminManageOrders=adminManageOrders,pendingorders=pendingorders,allOrders=allOrders)
+               return render_template('adminmanageorders.html',adminManageOrders=adminManageOrders,pendingorders=pendingorders,allOrders=allOrders,form4=form4,form5=form5)
 
             
             elif request.form.get('form_type') == 'admin_AddAddAcc':

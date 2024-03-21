@@ -54,4 +54,8 @@ class MarketingForm(FlaskForm):
 
 class CompleteOrderForm(FlaskForm):
     stripeid = HiddenField('Stripe ID', validators=[InputRequired()])
-    submit = SubmitField('Complete Order')
+    submit4 = SubmitField('Complete Order')
+
+class DeleteOrderForm(FlaskForm):
+    stripeid = HiddenField('Stripe ID', validators=[InputRequired()])
+    submit5 = SubmitField('Delete Order')
