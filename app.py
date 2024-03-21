@@ -1,7 +1,7 @@
 from flask import Flask, render_template, url_for, redirect, request, session, flash
 from flask_mysqldb import MySQL
 from flask_mail import Mail,Message
-from forms import SignupForm, LoginForm, MenuForm, PaymentForm, AddFoodForm, DeleteFoodForm, StripeKeysForm
+from forms import SignupForm, LoginForm, MenuForm, PaymentForm, AddFoodForm, DeleteFoodForm, StripeKeysForm, MarketingForm
 import re
 import stripe
 import datetime
@@ -35,6 +35,8 @@ app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS')
 app.config['MAIL_USE_SSL'] = os.getenv('MAIL_USE_SSL')
 app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
 app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+
+app.config['DEBUG'] = False
 
 domain = os.getenv('domain')
 port = os.getenv('port')
@@ -669,7 +671,7 @@ def admin():
             return redirect(url_for('verifyadmin'))
 
          
-   #create table and fetch stripe keys
+      #create table and fetch stripe keys
       try:
          cursor.execute("CREATE TABLE IF NOT EXISTS stripekeys (id INT AUTO_INCREMENT PRIMARY KEY, apikey VARCHAR(255), pubkey VARCHAR(255))")
          cursor.execute('SELECT apikey,pubkey from stripekeys')
@@ -715,6 +717,7 @@ def admin():
             form = AddFoodForm()
             form1 = DeleteFoodForm()
             form2 = StripeKeysForm()
+            form3 = MarketingForm()
             
             if request.form.get('form_type') == 'payment_gateway':
                paymentactive = True
@@ -755,9 +758,9 @@ def admin():
             
             elif request.form.get('form_type') == 'admin_marketingNav':
                marketingMail = True
-               return render_template("adminmarketing.html",title='Marketing Mails',marketingMail=marketingMail)
+               return render_template("adminmarketing.html",title='Marketing Mails',marketingMail=marketingMail, form3=form3)
             
-            elif request.form.get('form_type') == 'admin_marketing':
+            elif form3.validate_on_submit():
                marketingMail = True
                emailSubject = request.form.get("subject")
                emailMessage = request.form.get('message')
@@ -780,7 +783,7 @@ def admin():
                   adminMail = x[0]
                   threading.Thread(target=lambda: sendemail(adminMail, marketingMessageAdmin, marketingSubjectAdmin)).start()
 
-               return render_template("adminmarketing.html",title='Marketing Mails',marketingMail=marketingMail)
+               return render_template("adminmarketing.html",title='Marketing Mails',marketingMail=marketingMail, form3=form3)
             
             elif request.form.get('form_type') == 'admin_manageaccounts':
                adminManageAccounts = True
