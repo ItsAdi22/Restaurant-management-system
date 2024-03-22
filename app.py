@@ -653,336 +653,337 @@ def setnewpass():
 @app.route('/admin',methods=['POST','GET'])
 @app.route('/admin/',methods=['POST','GET'])
 def admin():
-   
    if 'admin' in session:
 
       adminMail = session.get('admin')
       try:
          cursor = mysql.connection.cursor()
-         cursor.execute('SELECT verified from adminusers WHERE adminmail = %s ',(adminMail,))
-         isVerified = cursor.fetchone()
-         isVerifiedFormatted = isVerified[0]
-         
+
       except Exception as e:
          return render_template("error.html",e=e)
 
       else:
+         cursor.execute('SELECT verified from adminusers WHERE adminmail = %s ',(adminMail,))
+         isVerified = cursor.fetchone()
+         isVerifiedFormatted = isVerified[0]
          if isVerifiedFormatted == str(0):
             return redirect(url_for('verifyadmin'))
 
-         
-      #create table and fetch stripe keys
-      try:
-         cursor.execute("CREATE TABLE IF NOT EXISTS stripekeys (id INT AUTO_INCREMENT PRIMARY KEY, apikey VARCHAR(255), pubkey VARCHAR(255))")
-         cursor.execute('SELECT apikey,pubkey from stripekeys')
-         keys = cursor.fetchone()
-
-      except Exception as e:
-         return render_template('error.html',e=e)
-      else:
-         if keys is not None:
-            apikey = keys[0]   
-            pubkey = keys[1]   
-
          else:
-            apikey = 'Enter_api_key'
-            pubkey = 'Enter_public_key'
-
-      #create table and fetch email auth details
-      try:
-         cursor.execute("CREATE TABLE IF NOT EXISTS emailauth (id INT AUTO_INCREMENT PRIMARY KEY, mail_default_sender VARCHAR(255), mail_server VARCHAR(255), mail_port INT(100), mail_tls VARCHAR(255), mail_ssl VARCHAR(255), mail_username VARCHAR(255), mail_password VARCHAR(255))")
-         cursor.execute('SELECT mail_default_sender, mail_server, mail_port, mail_tls, mail_ssl, mail_username, mail_password from emailauth')
-         emailauth = cursor.fetchone()
-      except Exception as e:
-         return render_template('error.html',e=e)
-      else:
-         if emailauth is not None:
-            mail_default_sender = emailauth[0]
-            mail_server = emailauth[1]
-            mail_port = emailauth[2]
-            mail_tls = emailauth[3]
-            mail_ssl = emailauth[4]
-            mail_username = emailauth[5]
-            mail_password = emailauth[6]
-         else:
-            mail_default_sender = 'Enter_value_here'
-            mail_server = 'Enter_value_here'
-            mail_port = 'Enter_value_here'
-            mail_tls = 'Enter_value_here'
-            mail_ssl = 'Enter_value_here'
-            mail_username = 'Enter_value_here'
-            mail_password = 'Enter_value_here'
-
-         if request.method == 'POST':
-            form = AddFoodForm()
-            form1 = DeleteFoodForm()
-            form2 = StripeKeysForm()
-            form3 = MarketingForm()
-            form4 = CompleteOrderForm()
-            form5 = DeleteOrderForm()
-            
-            if request.form.get('form_type') == 'payment_gateway':
-               paymentactive = True
-               return render_template('adminpay.html', apikey=apikey,pubkey=pubkey,paymentactive=paymentactive,form2=form2)   
-            
-            elif request.form.get('form_type') == 'admin_email':
-               emailactive = True
-               return render_template('adminemail.html', title='Email Auth',mail_default_sender=mail_default_sender,mail_server=mail_server,mail_port=mail_port,mail_tls=mail_tls,mail_ssl=mail_ssl,mail_username=mail_username,mail_password=mail_password,emailactive=emailactive)
-         
-            elif request.form.get('form_type') == 'admin_food':
-               foodactive = True
-               return render_template('adminfood.html',title='Manage Food Menu',foodactive=foodactive, form=form, form1=form1)
-            
-            elif request.form.get('form_type') == 'admin_delfood':
-               
-               if form1.validate_on_submit():
-                  foodName = request.form.get('foodName')
-                  foodCategory = request.form.get('foodCategory')
-               
-                  cursor.execute(f"SELECT title FROM {foodCategory} WHERE title = %s", (foodName,))
-                  delFoodFound = cursor.fetchone()
-               
-                  if delFoodFound is not None:
-                     cursor.execute(f"DELETE FROM {foodCategory} WHERE title = %s", (delFoodFound,))
-                     mysql.connection.commit()
-                     flash(f'{foodName} deleted from the menu!')
-                  
-                  else:
-                     flash(f'{foodName} not found!')
-
-               else:
-                  for x in form1.errors:
-                     flash(f'Enter valid {x} !')
-               cursor.close()      
-               foodactive = True
-               
-               return render_template('adminfood.html',title='Manage Food Menu',foodactive=foodactive, form1=form1, form=form)
-            
-            elif request.form.get('form_type') == 'admin_marketingNav':
-               marketingMail = True
-               return render_template("adminmarketing.html",title='Marketing Mails',marketingMail=marketingMail, form3=form3)
-            
-            elif form3.validate_on_submit():
-               marketingMail = True
-               emailSubject = request.form.get("subject")
-               emailMessage = request.form.get('message')
-
-               cursor.execute('SELECT email from login')
-               result = cursor.fetchall()
-               totalMails = len(result)
-               for x in result:
-                  userMail = x[0]
-                  threading.Thread(target=lambda: sendemail(userMail, emailMessage, emailSubject)).start()
-               flash("Marketing Emails Sent!")
-
-               cursor.execute('SELECT adminmail from adminusers')
-               result1 = cursor.fetchall()
-               totalAdminMails = len(result1)
-               
-               marketingSubjectAdmin = 'Admin Notice | Marketing email Sent!'
-               marketingMessageAdmin = f'Marketing email has been sent to {totalMails} users and {totalAdminMails} admin users'
-               for x in result1:
-                  adminMail = x[0]
-                  threading.Thread(target=lambda: sendemail(adminMail, marketingMessageAdmin, marketingSubjectAdmin)).start()
-
-               return render_template("adminmarketing.html",title='Marketing Mails',marketingMail=marketingMail, form3=form3)
-            
-            elif request.form.get('form_type') == 'admin_manageaccounts':
-               adminManageAccounts = True
-               cursor.execute("SELECT name,email from login")
-               registeredUsers = cursor.fetchall()
-               
-               cursor.execute('SELECT username,adminmail,verified,owner from adminusers')
-               adminusers = cursor.fetchall()
-               cursor.close()
-               return render_template('adminmanageaccounts.html',title='Manage Accounts',adminManageAccounts=adminManageAccounts,registeredUsers=registeredUsers,adminusers=adminusers)
-            
-            elif request.form.get('form_type') == 'admin_loginas':
-               userName = request.form.get("loginas_name")
-               userEmail = request.form.get("loginas_email")
-
-               session.pop('ecart',None)
-               session.pop('tQuantityFmt',None)
-               session['email'] = userEmail
-               session['name'] = userName
-               
-               flash(f"Logged in as {userName}!")
-               return redirect(url_for('index'))
-
-            elif request.form.get('form_type') == 'admin_deluseracc':
-               adminManageAccounts = True
-
-               deluserMail = request.form.get("deluserMail")
-               cursor.execute('DELETE FROM login WHERE email = %s',(deluserMail,))
-               mysql.connection.commit()
-               flash(f"User {deluserMail} Deleted!")
-               
-               cursor.execute("SELECT name,email from login")
-               registeredUsers = cursor.fetchall()
-               
-               cursor.execute('SELECT username,adminmail,verified,owner from adminusers')
-               adminusers = cursor.fetchall()
-               cursor.close()
-               return render_template('adminmanageaccounts.html',title='Manage Accounts',adminManageAccounts=adminManageAccounts,registeredUsers=registeredUsers,adminusers=adminusers)
-
-            elif request.form.get('form_type') == 'admin_delAddacc':
-               adminManageAccounts = True
-               delAddMail = request.form.get('delAddMail')
-               
-               cursor.execute("DELETE FROM adminusers WHERE adminmail = %s",(delAddMail,))
-               mysql.connection.commit()
-               flash(f"Admin User {delAddMail} Deleted!")
-               
-               cursor.execute("SELECT name,email from login")
-               registeredUsers = cursor.fetchall()
-
-               cursor.execute('SELECT username,adminmail,verified,owner from adminusers')
-               adminusers = cursor.fetchall()
-               cursor.close()
-               
-               if delAddMail == adminMail:
-                  session.pop('admin',None)
-                  return redirect(url_for('index'))
-               else:
-                  return render_template('adminmanageaccounts.html',title='Manage Accounts',adminManageAccounts=adminManageAccounts,registeredUsers=registeredUsers,adminusers=adminusers)
-               
-            elif request.form.get('form_type') == 'admin_manageOrders':
-               adminManageOrders = True
-
-               cursor.execute('SELECT name,item,price,date,note,tableno,served,stripeid from orders WHERE served = %s',(0,))
-               pendingorders = cursor.fetchall()
-
-               cursor.execute('SELECT name,item,price,date,served from orders ORDER BY id DESC')
-               allOrders = cursor.fetchall()
-
-               return render_template('adminmanageorders.html',adminManageOrders=adminManageOrders,pendingorders=pendingorders,allOrders=allOrders,form4=form4,form5=form5)
-
-            elif form4.validate_on_submit():
-               adminManageOrders = True
-
-               stripeid = request.form.get('stripeid')
-               print(f"form 4 in action: {stripeid}")
-               
-               cursor.execute('UPDATE orders SET served = 1 WHERE stripeid = %s;',(stripeid,))
-               mysql.connection.commit()
-
-               cursor.execute('SELECT name,item,price,date,note,tableno,served,stripeid from ORDERS WHERE served = %s',(0,))
-               pendingorders = cursor.fetchall()
-               
-               cursor.execute('SELECT name,item,price,date,served from ORDERS ORDER BY id DESC')
-               allOrders = cursor.fetchall()
-               return render_template('adminmanageorders.html',adminManageOrders=adminManageOrders,pendingorders=pendingorders,allOrders=allOrders,form4=form4, form5=form5)
-
-            elif form5.validate_on_submit():
-               adminManageOrders = True
-               stripeid = request.form.get('stripeid')
-               print(f"form 5 in action: {stripeid}")
-
-               cursor.execute('UPDATE orders SET served = 2 WHERE stripeid = %s;',(stripeid,))
-               mysql.connection.commit()
-
-               cursor.execute('SELECT name,item,price,date,note,tableno,served,stripeid from ORDERS WHERE served = %s',(0,))
-               pendingorders = cursor.fetchall()
-               
-               cursor.execute('SELECT name,item,price,date,served from ORDERS')
-               allOrders = cursor.fetchall()
-               return render_template('adminmanageorders.html',adminManageOrders=adminManageOrders,pendingorders=pendingorders,allOrders=allOrders,form4=form4,form5=form5)
-
-            
-            elif request.form.get('form_type') == 'admin_AddAddAcc':
-               adminManageAccounts = True
-               newAdminName = request.form.get('newAdminName')
-               newAdminEmail = request.form.get('newAdminEmail')
-               NewAdminpass = secrets.token_hex(6)
-               
-               sql = "INSERT INTO adminusers(username,adminmail,password,verified,owner) VALUES(%s,%s,%s,%s,%s)"
-               value = (newAdminName,newAdminEmail,NewAdminpass,0,0)
-               cursor.execute(sql,value)
-               mysql.connection.commit()
-               
-               subject = 'Your admin account credentials!'
-               body = f'''New Admin account created!
-
-               username: {newAdminName}
-               password: {NewAdminpass}
-               '''
-               threading.Thread(target=lambda: sendemail(newAdminEmail, body, subject)).start()
-               flash("New admin account created!")
-
-               cursor.execute("SELECT name,email from login")
-               registeredUsers = cursor.fetchall()
-
-               cursor.execute('SELECT username,adminmail,verified,owner from adminusers')
-               adminusers = cursor.fetchall()
-               cursor.close()
-               return render_template('adminmanageaccounts.html',title='Manage Accounts',adminManageAccounts=adminManageAccounts,registeredUsers=registeredUsers,adminusers=adminusers)
-
-            else:
-               #today sales
-               now = datetime.datetime.now()
-               current_date = now.strftime("%Y-%m-%d")
-               cursor.execute('Select SUM(price) from orders Where date = %s',(current_date,))
-               todaySales = cursor.fetchone()
-
-               cursor.execute("SELECT SUM(price) FROM orders")
-               totalSales = cursor.fetchone()
-               
-               cursor.execute('SELECT SUM(total) FROM cart')
-               pendingSales = cursor.fetchone()
-
-               cursor.execute('SELECT id from orders')
-               totalids = cursor.fetchall()
-               totalOrders = len(totalids)
-               
-               # To display data on chart
-               cursor.execute('SELECT date, SUM(price) as total_price FROM orders GROUP BY date LIMIT 7;')
-               sales = cursor.fetchall()
-
-               #For pie chart data
-               cursor.execute("SELECT item, SUM(quantity) FROM allitems GROUP BY item")
-               allitems = cursor.fetchall()
-               
-               cursor.close()
-               homeactive = True
-               return render_template('admin.html', title = "Admin",totalSales=totalSales,sales=sales,homeactive=homeactive,pendingSales=pendingSales,totalOrders=totalOrders,todaySales=todaySales,allitems=allitems)
-
-         else:
+            #create table and fetch stripe keys
             try:
+               cursor.execute("CREATE TABLE IF NOT EXISTS stripekeys (id INT AUTO_INCREMENT PRIMARY KEY, apikey VARCHAR(255), pubkey VARCHAR(255))")
+               cursor.execute('SELECT apikey,pubkey from stripekeys')
+               keys = cursor.fetchone()
 
-               #today sales
-               now = datetime.datetime.now()
-               current_date = now.strftime("%Y-%m-%d")
-               cursor.execute('Select SUM(price) from orders Where date = %s',(current_date,))
-               todaySales = cursor.fetchone()
-               
-               #total sales
-               cursor.execute("SELECT SUM(price) FROM orders")
-               totalSales = cursor.fetchone()
-               
-               #pending sales
-               cursor.execute('SELECT SUM(total) FROM cart')
-               pendingSales = cursor.fetchone()
+            except Exception as e:
+               return render_template('error.html',e=e)
+            else:
+               if keys is not None:
+                  apikey = keys[0]   
+                  pubkey = keys[1]   
 
-               #total orders
-               cursor.execute('SELECT id from orders')
-               totalids = cursor.fetchall()
-               totalOrders = len(totalids)
-               
-               # To display data on chart
-               cursor.execute('SELECT date, SUM(price) as total_price FROM orders GROUP BY date LIMIT 7;')
-               sales = cursor.fetchall()
+               else:
+                  apikey = 'Enter_api_key'
+                  pubkey = 'Enter_public_key'
 
-               #For pie chart data
-               cursor.execute("SELECT item, SUM(quantity) FROM allitems GROUP BY item")
-               allitems = cursor.fetchall()
-               
-               cursor.close()
-               homeactive = True
-               return render_template('admin.html', title = "Admin",totalSales=totalSales,sales=sales,homeactive=homeactive,pendingSales=pendingSales,totalOrders=totalOrders,todaySales=todaySales,allitems=allitems)
+            #create table and fetch email auth details
+            try:
+               cursor.execute("CREATE TABLE IF NOT EXISTS emailauth (id INT AUTO_INCREMENT PRIMARY KEY, mail_default_sender VARCHAR(255), mail_server VARCHAR(255), mail_port INT(100), mail_tls VARCHAR(255), mail_ssl VARCHAR(255), mail_username VARCHAR(255), mail_password VARCHAR(255))")
+               cursor.execute('SELECT mail_default_sender, mail_server, mail_port, mail_tls, mail_ssl, mail_username, mail_password from emailauth')
+               emailauth = cursor.fetchone()
             
             except Exception as e:
                return render_template('error.html',e=e)
-      
+            
+            else:
+               if emailauth is not None:
+                  mail_default_sender = emailauth[0]
+                  mail_server = emailauth[1]
+                  mail_port = emailauth[2]
+                  mail_tls = emailauth[3]
+                  mail_ssl = emailauth[4]
+                  mail_username = emailauth[5]
+                  mail_password = emailauth[6]
+               else:
+                  mail_default_sender = 'Enter_value_here'
+                  mail_server = 'Enter_value_here'
+                  mail_port = 'Enter_value_here'
+                  mail_tls = 'Enter_value_here'
+                  mail_ssl = 'Enter_value_here'
+                  mail_username = 'Enter_value_here'
+                  mail_password = 'Enter_value_here'
+
+            if request.method == 'POST':
+               form = AddFoodForm()
+               form1 = DeleteFoodForm()
+               form2 = StripeKeysForm()
+               form3 = MarketingForm()
+               form4 = CompleteOrderForm()
+               form5 = DeleteOrderForm()
+               
+               if request.form.get('form_type') == 'payment_gateway':
+                  paymentactive = True
+                  return render_template('adminpay.html', apikey=apikey,pubkey=pubkey,paymentactive=paymentactive,form2=form2)   
+               
+               elif request.form.get('form_type') == 'admin_email':
+                  emailactive = True
+                  return render_template('adminemail.html', title='Email Auth',mail_default_sender=mail_default_sender,mail_server=mail_server,mail_port=mail_port,mail_tls=mail_tls,mail_ssl=mail_ssl,mail_username=mail_username,mail_password=mail_password,emailactive=emailactive)
+            
+               elif request.form.get('form_type') == 'admin_food':
+                  foodactive = True
+                  return render_template('adminfood.html',title='Manage Food Menu',foodactive=foodactive, form=form, form1=form1)
+               
+               elif request.form.get('form_type') == 'admin_delfood':
+                  
+                  if form1.validate_on_submit():
+                     foodName = request.form.get('foodName')
+                     foodCategory = request.form.get('foodCategory')
+                  
+                     cursor.execute(f"SELECT title FROM {foodCategory} WHERE title = %s", (foodName,))
+                     delFoodFound = cursor.fetchone()
+                  
+                     if delFoodFound is not None:
+                        cursor.execute(f"DELETE FROM {foodCategory} WHERE title = %s", (delFoodFound,))
+                        mysql.connection.commit()
+                        flash(f'{foodName} deleted from the menu!')
+                     
+                     else:
+                        flash(f'{foodName} not found!')
+
+                  else:
+                     for x in form1.errors:
+                        flash(f'Enter valid {x} !')
+                  cursor.close()      
+                  foodactive = True
+                  
+                  return render_template('adminfood.html',title='Manage Food Menu',foodactive=foodactive, form1=form1, form=form)
+               
+               elif request.form.get('form_type') == 'admin_marketingNav':
+                  marketingMail = True
+                  return render_template("adminmarketing.html",title='Marketing Mails',marketingMail=marketingMail, form3=form3)
+               
+               elif form3.validate_on_submit():
+                  marketingMail = True
+                  emailSubject = request.form.get("subject")
+                  emailMessage = request.form.get('message')
+
+                  cursor.execute('SELECT email from login')
+                  result = cursor.fetchall()
+                  totalMails = len(result)
+                  for x in result:
+                     userMail = x[0]
+                     threading.Thread(target=lambda: sendemail(userMail, emailMessage, emailSubject)).start()
+                  flash("Marketing Emails Sent!")
+
+                  cursor.execute('SELECT adminmail from adminusers')
+                  result1 = cursor.fetchall()
+                  totalAdminMails = len(result1)
+                  
+                  marketingSubjectAdmin = 'Admin Notice | Marketing email Sent!'
+                  marketingMessageAdmin = f'Marketing email has been sent to {totalMails} users and {totalAdminMails} admin users'
+                  for x in result1:
+                     adminMail = x[0]
+                     threading.Thread(target=lambda: sendemail(adminMail, marketingMessageAdmin, marketingSubjectAdmin)).start()
+
+                  return render_template("adminmarketing.html",title='Marketing Mails',marketingMail=marketingMail, form3=form3)
+               
+               elif request.form.get('form_type') == 'admin_manageaccounts':
+                  adminManageAccounts = True
+                  cursor.execute("SELECT name,email from login")
+                  registeredUsers = cursor.fetchall()
+                  
+                  cursor.execute('SELECT username,adminmail,verified,owner from adminusers')
+                  adminusers = cursor.fetchall()
+                  cursor.close()
+                  return render_template('adminmanageaccounts.html',title='Manage Accounts',adminManageAccounts=adminManageAccounts,registeredUsers=registeredUsers,adminusers=adminusers)
+               
+               elif request.form.get('form_type') == 'admin_loginas':
+                  userName = request.form.get("loginas_name")
+                  userEmail = request.form.get("loginas_email")
+
+                  session.pop('ecart',None)
+                  session.pop('tQuantityFmt',None)
+                  session['email'] = userEmail
+                  session['name'] = userName
+                  
+                  flash(f"Logged in as {userName}!")
+                  return redirect(url_for('index'))
+
+               elif request.form.get('form_type') == 'admin_deluseracc':
+                  adminManageAccounts = True
+
+                  deluserMail = request.form.get("deluserMail")
+                  cursor.execute('DELETE FROM login WHERE email = %s',(deluserMail,))
+                  mysql.connection.commit()
+                  flash(f"User {deluserMail} Deleted!")
+                  
+                  cursor.execute("SELECT name,email from login")
+                  registeredUsers = cursor.fetchall()
+                  
+                  cursor.execute('SELECT username,adminmail,verified,owner from adminusers')
+                  adminusers = cursor.fetchall()
+                  cursor.close()
+                  return render_template('adminmanageaccounts.html',title='Manage Accounts',adminManageAccounts=adminManageAccounts,registeredUsers=registeredUsers,adminusers=adminusers)
+
+               elif request.form.get('form_type') == 'admin_delAddacc':
+                  adminManageAccounts = True
+                  delAddMail = request.form.get('delAddMail')
+                  
+                  cursor.execute("DELETE FROM adminusers WHERE adminmail = %s",(delAddMail,))
+                  mysql.connection.commit()
+                  flash(f"Admin User {delAddMail} Deleted!")
+                  
+                  cursor.execute("SELECT name,email from login")
+                  registeredUsers = cursor.fetchall()
+
+                  cursor.execute('SELECT username,adminmail,verified,owner from adminusers')
+                  adminusers = cursor.fetchall()
+                  cursor.close()
+                  
+                  if delAddMail == adminMail:
+                     session.pop('admin',None)
+                     return redirect(url_for('index'))
+                  else:
+                     return render_template('adminmanageaccounts.html',title='Manage Accounts',adminManageAccounts=adminManageAccounts,registeredUsers=registeredUsers,adminusers=adminusers)
+                  
+               elif request.form.get('form_type') == 'admin_manageOrders':
+                  adminManageOrders = True
+
+                  cursor.execute('SELECT name,item,price,date,note,tableno,served,stripeid from orders WHERE served = %s',(0,))
+                  pendingorders = cursor.fetchall()
+
+                  cursor.execute('SELECT name,item,price,date,served from orders ORDER BY id DESC')
+                  allOrders = cursor.fetchall()
+
+                  return render_template('adminmanageorders.html',adminManageOrders=adminManageOrders,pendingorders=pendingorders,allOrders=allOrders,form4=form4,form5=form5)
+
+               elif form4.validate_on_submit():
+                  adminManageOrders = True
+
+                  stripeid = request.form.get('stripeid')
+                  print(f"form 4 in action: {stripeid}")
+                  
+                  cursor.execute('UPDATE orders SET served = 1 WHERE stripeid = %s;',(stripeid,))
+                  mysql.connection.commit()
+
+                  cursor.execute('SELECT name,item,price,date,note,tableno,served,stripeid from ORDERS WHERE served = %s',(0,))
+                  pendingorders = cursor.fetchall()
+                  
+                  cursor.execute('SELECT name,item,price,date,served from ORDERS ORDER BY id DESC')
+                  allOrders = cursor.fetchall()
+                  return render_template('adminmanageorders.html',adminManageOrders=adminManageOrders,pendingorders=pendingorders,allOrders=allOrders,form4=form4, form5=form5)
+
+               elif form5.validate_on_submit():
+                  adminManageOrders = True
+                  stripeid = request.form.get('stripeid')
+                  print(f"form 5 in action: {stripeid}")
+
+                  cursor.execute('UPDATE orders SET served = 2 WHERE stripeid = %s;',(stripeid,))
+                  mysql.connection.commit()
+
+                  cursor.execute('SELECT name,item,price,date,note,tableno,served,stripeid from ORDERS WHERE served = %s',(0,))
+                  pendingorders = cursor.fetchall()
+                  
+                  cursor.execute('SELECT name,item,price,date,served from ORDERS')
+                  allOrders = cursor.fetchall()
+                  return render_template('adminmanageorders.html',adminManageOrders=adminManageOrders,pendingorders=pendingorders,allOrders=allOrders,form4=form4,form5=form5)
+
+               
+               elif request.form.get('form_type') == 'admin_AddAddAcc':
+                  adminManageAccounts = True
+                  newAdminName = request.form.get('newAdminName')
+                  newAdminEmail = request.form.get('newAdminEmail')
+                  NewAdminpass = secrets.token_hex(6)
+                  
+                  sql = "INSERT INTO adminusers(username,adminmail,password,verified,owner) VALUES(%s,%s,%s,%s,%s)"
+                  value = (newAdminName,newAdminEmail,NewAdminpass,0,0)
+                  cursor.execute(sql,value)
+                  mysql.connection.commit()
+                  
+                  subject = 'Your admin account credentials!'
+                  body = f'''New Admin account created!
+
+                  username: {newAdminName}
+                  password: {NewAdminpass}
+                  '''
+                  threading.Thread(target=lambda: sendemail(newAdminEmail, body, subject)).start()
+                  flash("New admin account created!")
+
+                  cursor.execute("SELECT name,email from login")
+                  registeredUsers = cursor.fetchall()
+
+                  cursor.execute('SELECT username,adminmail,verified,owner from adminusers')
+                  adminusers = cursor.fetchall()
+                  cursor.close()
+                  return render_template('adminmanageaccounts.html',title='Manage Accounts',adminManageAccounts=adminManageAccounts,registeredUsers=registeredUsers,adminusers=adminusers)
+
+               else:
+                  #today sales
+                  now = datetime.datetime.now()
+                  current_date = now.strftime("%Y-%m-%d")
+                  cursor.execute('Select SUM(price) from orders Where date = %s',(current_date,))
+                  todaySales = cursor.fetchone()
+
+                  cursor.execute("SELECT SUM(price) FROM orders")
+                  totalSales = cursor.fetchone()
+                  
+                  cursor.execute('SELECT SUM(total) FROM cart')
+                  pendingSales = cursor.fetchone()
+
+                  cursor.execute('SELECT id from orders')
+                  totalids = cursor.fetchall()
+                  totalOrders = len(totalids)
+                  
+                  # To display data on chart
+                  cursor.execute('SELECT date, SUM(price) as total_price FROM orders GROUP BY date LIMIT 7;')
+                  sales = cursor.fetchall()
+
+                  #For pie chart data
+                  cursor.execute("SELECT item, SUM(quantity) FROM allitems GROUP BY item")
+                  allitems = cursor.fetchall()
+                  
+                  cursor.close()
+                  homeactive = True
+                  return render_template('admin.html', title = "Admin",totalSales=totalSales,sales=sales,homeactive=homeactive,pendingSales=pendingSales,totalOrders=totalOrders,todaySales=todaySales,allitems=allitems)
+
+            else:
+               try:
+
+                  #today sales
+                  now = datetime.datetime.now()
+                  current_date = now.strftime("%Y-%m-%d")
+                  cursor.execute('Select SUM(price) from orders Where date = %s',(current_date,))
+                  todaySales = cursor.fetchone()
+                  
+                  #total sales
+                  cursor.execute("SELECT SUM(price) FROM orders")
+                  totalSales = cursor.fetchone()
+                  
+                  #pending sales
+                  cursor.execute('SELECT SUM(total) FROM cart')
+                  pendingSales = cursor.fetchone()
+
+                  #total orders
+                  cursor.execute('SELECT id from orders')
+                  totalids = cursor.fetchall()
+                  totalOrders = len(totalids)
+                  
+                  # To display data on chart
+                  cursor.execute('SELECT date, SUM(price) as total_price FROM orders GROUP BY date LIMIT 7;')
+                  sales = cursor.fetchall()
+
+                  #For pie chart data
+                  cursor.execute("SELECT item, SUM(quantity) FROM allitems GROUP BY item")
+                  allitems = cursor.fetchall()
+                  
+                  cursor.close()
+                  homeactive = True
+                  return render_template('admin.html', title = "Admin",totalSales=totalSales,sales=sales,homeactive=homeactive,pendingSales=pendingSales,totalOrders=totalOrders,todaySales=todaySales,allitems=allitems)
+               
+               except Exception as e:
+                  return render_template('error.html',e=e)
+            
    else:
       if request.method == 'POST':
          if request.form.get('form_type') == 'admin_forgetOTP':
