@@ -52,9 +52,10 @@ th, td {
                 <td>
                     <div class="parent">
                         <div class="child">             
-                            <form action="{{url_for('admin')}}" method="post">
+                            <form action="{{url_for('admin')}}" method="post" data-form-type="form4">
                                 {{ form4.csrf_token }}
                                 {{ form4.stripeid (value = stripeid)}}
+                                <input type="hidden" name="form_type" value="form4">
                                 {{ form4.submit4(class="btn btn-success form-control") }}
                             </form> 
                         </div>
@@ -63,6 +64,7 @@ th, td {
                             <form action="{{url_for('admin')}}" method="post">
                                 {{ form5.csrf_token }}
                                 {{ form5.stripeid (value = stripeid)}}
+                                <input type="hidden" name="form_type" value="form5">
                                 {{ form5.submit5(class="btn btn-danger form-control") }}
                             </form>
                         </div>

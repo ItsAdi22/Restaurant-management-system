@@ -858,38 +858,49 @@ def admin():
 
                   return render_template('adminmanageorders.html',adminManageOrders=adminManageOrders,pendingorders=pendingorders,allOrders=allOrders,form4=form4,form5=form5)
 
-               elif form4.validate_on_submit():
-                  adminManageOrders = True
+               elif request.form.get('form_type') == "form4":
+                  if form4.validate_on_submit():
+                     adminManageOrders = True
 
-                  stripeid = request.form.get('stripeid')
-                  print(f"form 4 in action: {stripeid}")
+                     stripeid = request.form.get('stripeid')
+                     print(f"form 4 in action: {stripeid}")
+                     
+                     cursor.execute('UPDATE orders SET served = 1 WHERE stripeid = %s;',(stripeid,))
+                     mysql.connection.commit()
+
+                     cursor.execute('SELECT name,item,price,date,note,tableno,served,stripeid from ORDERS WHERE served = %s',(0,))
+                     pendingorders = cursor.fetchall()
+                     
+                     cursor.execute('SELECT name,item,price,date,served from ORDERS ORDER BY id DESC')
+                     allOrders = cursor.fetchall()
+                     return render_template('adminmanageorders.html',adminManageOrders=adminManageOrders,pendingorders=pendingorders,allOrders=allOrders,form4=form4, form5=form5)
                   
-                  cursor.execute('UPDATE orders SET served = 1 WHERE stripeid = %s;',(stripeid,))
-                  mysql.connection.commit()
-
-                  cursor.execute('SELECT name,item,price,date,note,tableno,served,stripeid from ORDERS WHERE served = %s',(0,))
-                  pendingorders = cursor.fetchall()
-                  
-                  cursor.execute('SELECT name,item,price,date,served from ORDERS ORDER BY id DESC')
-                  allOrders = cursor.fetchall()
-                  return render_template('adminmanageorders.html',adminManageOrders=adminManageOrders,pendingorders=pendingorders,allOrders=allOrders,form4=form4, form5=form5)
-
-               elif form5.validate_on_submit():
-                  adminManageOrders = True
-                  stripeid = request.form.get('stripeid')
-                  print(f"form 5 in action: {stripeid}")
-
-                  cursor.execute('UPDATE orders SET served = 2 WHERE stripeid = %s;',(stripeid,))
-                  mysql.connection.commit()
-
-                  cursor.execute('SELECT name,item,price,date,note,tableno,served,stripeid from ORDERS WHERE served = %s',(0,))
-                  pendingorders = cursor.fetchall()
-                  
-                  cursor.execute('SELECT name,item,price,date,served from ORDERS')
-                  allOrders = cursor.fetchall()
-                  return render_template('adminmanageorders.html',adminManageOrders=adminManageOrders,pendingorders=pendingorders,allOrders=allOrders,form4=form4,form5=form5)
-
+                  else:
+                     flash("FORM VALIDATION ERROR")
+                     print("FORM VALIDATION ERROR")
+                     return redirect(url_for('admin'))
                
+               elif request.form.get('form_type') == "form5":
+                  if form5.validate_on_submit():
+                     adminManageOrders = True
+                     stripeid = request.form.get('stripeid')
+                     print(f"form 5 in action: {stripeid}")
+
+                     cursor.execute('UPDATE orders SET served = 2 WHERE stripeid = %s;',(stripeid,))
+                     mysql.connection.commit()
+
+                     cursor.execute('SELECT name,item,price,date,note,tableno,served,stripeid from ORDERS WHERE served = %s',(0,))
+                     pendingorders = cursor.fetchall()
+                     
+                     cursor.execute('SELECT name,item,price,date,served from orders ORDER BY id DESC')
+                     allOrders = cursor.fetchall()
+                     return render_template('adminmanageorders.html',adminManageOrders=adminManageOrders,pendingorders=pendingorders,allOrders=allOrders,form4=form4,form5=form5)
+
+                  else:
+                     flash("FORM VALIDATION ERROR")
+                     print("FORM VALIDATION ERROR")
+                     return redirect(url_for('admin'))
+                     
                elif request.form.get('form_type') == 'admin_AddAddAcc':
                   adminManageAccounts = True
                   newAdminName = request.form.get('newAdminName')
