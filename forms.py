@@ -25,7 +25,7 @@ class PaymentForm(FlaskForm):
     message = TextAreaField('Message', render_kw={'rows': 3}, description='Leave empty if you don\'t want to send any custom message')
     submit = SubmitField('Submit')
 
-#################################### ADMIN SECTION FORMS BEGINS ####################################
+#################################### ADMIN ROUTE FORMS BEGINS ####################################
     
 class AddFoodForm(FlaskForm):
     foodtitle = StringField('Title', validators=[InputRequired()])
@@ -83,4 +83,9 @@ class DelAdminAccForm(FlaskForm):
     delAddMail = HiddenField('Email',validators=[InputRequired(), Email()])
     submit = SubmitField('Delete Account', render_kw={"class": "btn btn-danger"})
 
-#################################### ADMIN SECTION FORMS ENDS ####################################
+#################################### ADMIN ROUTE FORMS ENDS ####################################
+    
+class AdminLoginForm(FlaskForm):
+    adminUsername = StringField('Username', validators=[InputRequired()],render_kw={"placeholder": "Enter your username"})
+    adminPassword = PasswordField('Password', validators=[InputRequired()],render_kw={"placeholder": "Enter your password"})
+    submit = SubmitField('Submit')

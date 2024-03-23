@@ -1,8 +1,7 @@
 from flask import Flask, render_template, url_for, redirect, request, session, flash
 from flask_mysqldb import MySQL
 from flask_mail import Mail,Message
-from forms import SignupForm, LoginForm, MenuForm, PaymentForm, AddFoodForm, DeleteFoodForm, StripeKeysForm, MarketingForm, CompleteOrderForm, DeleteOrderForm, LoginAsUserForm, DeleteUserAccForm, AddAdminAccForm, DelAdminAccForm
-import re
+from forms import SignupForm, LoginForm, MenuForm, PaymentForm, AddFoodForm, DeleteFoodForm, StripeKeysForm, MarketingForm, CompleteOrderForm, DeleteOrderForm, LoginAsUserForm, DeleteUserAccForm, AddAdminAccForm, DelAdminAccForm, AdminLoginForm
 import stripe
 import datetime
 import random
@@ -421,38 +420,51 @@ def myorders():
 def adminlogin():
    createMissingTables()
    if 'admin' not in session:
+      form = AdminLoginForm()
       if request.method == 'POST':
-         adminUsername = request.form['adminUsername']
-         adminPassword = request.form['adminPassword']
          
-         try:
-            cursor = mysql.connection.cursor()
-            #create missing tables
-            cursor.execute('SELECT adminmail FROM adminusers')
+         if form.validate_on_submit():
+            adminUsername = request.form.get("adminUsername")
+            adminPassword = request.form.get("adminPassword")
             
-         except Exception as e:
-            flash("Database Error: " + str(e))
-            return redirect(request.referrer)
-         else:
-            adminfound = cursor.fetchall()
-            if adminfound is not None and adminfound != tuple(''):
-               print(type(adminfound))
-               cursor.execute('SELECT adminmail FROM adminusers WHERE username = %s AND password IS NOT NULL AND password = %s', (adminUsername, adminPassword,))
-               adminlogged = cursor.fetchone()
-               if adminlogged:
-                  adminMail = adminlogged[0]
-                  session['admin'] = adminMail
-                  cursor.close()
-                  print(f"Admin session started as: {adminMail}")
-               else:
-                  flash("Incorrect Username/Password")
+            try:
+               cursor = mysql.connection.cursor()
+               #create missing tables
+               cursor.execute('SELECT adminmail FROM adminusers')
                
-               return redirect(url_for('admin'))
+            except Exception as e:
+               flash("Database Error: " + str(e))
+               return redirect(request.referrer)
             else:
-               flash("No admin accounts exists")
-               return render_template('adminlogin.html',noacc=True)
+               adminfound = cursor.fetchall()
+               if adminfound is not None and adminfound != tuple(''):
+                  print(type(adminfound))
+                  cursor.execute('SELECT adminmail FROM adminusers WHERE username = %s AND password IS NOT NULL AND password = %s', (adminUsername, adminPassword,))
+                  adminlogged = cursor.fetchone()
+                  if adminlogged:
+                     adminMail = adminlogged[0]
+                     session['admin'] = adminMail
+                     cursor.close()
+                     print(f"Admin session started as: {adminMail}")
+                  else:
+                     flash("Incorrect Username/Password")
+                  
+                  return redirect(url_for('admin'))
+               else:
+                  flash("No admin accounts exists")
+                  return render_template('adminlogin.html',noacc=True,form=form)
+         else:
+            for x in form.errors:
+               if (x == "adminUsername"):
+                  flash("Enter valid username")
+               elif (x == "adminPassword"):
+                  flash("Enter valid password")
+               else:
+                  flash("FORM VALIDATION ERROR!")
+            
+            return redirect(request.referrer)
       else:
-         return render_template('adminlogin.html')
+         return render_template('adminlogin.html',form=form)
    else:
       return redirect(url_for('admin'))
 
