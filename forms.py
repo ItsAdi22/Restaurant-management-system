@@ -26,7 +26,7 @@ class PaymentForm(FlaskForm):
     message = TextAreaField('Message', render_kw={'rows': 3}, description='Leave empty if you don\'t want to send any custom message')
     submit = SubmitField('Submit')
 
-# admin section forms
+#################################### ADMIN SECTION FORMS BEGINS ####################################
     
 class AddFoodForm(FlaskForm):
     foodtitle = StringField('Title', validators=[InputRequired()])
@@ -61,3 +61,11 @@ class DeleteOrderForm(FlaskForm):
     form_type_del = HiddenField("Form Type", default="form5")
     stripeid = HiddenField('Stripe ID', validators=[InputRequired()])
     submit = SubmitField('Delete Order')
+
+
+class LoginAsUser(FlaskForm):
+    form_type_loginuser = HiddenField()
+    loginas_name = HiddenField(validators=[InputRequired()])
+    loginas_email = HiddenField(validators=[InputRequired()])
+    submit = SubmitField('Login as user')
+#################################### ADMIN SECTION FORMS ENDS ####################################

@@ -1,7 +1,7 @@
 from flask import Flask, render_template, url_for, redirect, request, session, flash
 from flask_mysqldb import MySQL
 from flask_mail import Mail,Message
-from forms import SignupForm, LoginForm, MenuForm, PaymentForm, AddFoodForm, DeleteFoodForm, StripeKeysForm, MarketingForm, CompleteOrderForm, DeleteOrderForm
+from forms import SignupForm, LoginForm, MenuForm, PaymentForm, AddFoodForm, DeleteFoodForm, StripeKeysForm, MarketingForm, CompleteOrderForm, DeleteOrderForm, LoginAsUser
 import re
 import stripe
 import datetime
@@ -721,6 +721,7 @@ def admin():
                form3 = MarketingForm()
                form4 = CompleteOrderForm()
                form5 = DeleteOrderForm()
+               form6 = LoginAsUser()
                
                if request.form.get('form_type') == 'payment_gateway':
                   paymentactive = True
@@ -796,19 +797,24 @@ def admin():
                   cursor.execute('SELECT username,adminmail,verified,owner from adminusers')
                   adminusers = cursor.fetchall()
                   cursor.close()
-                  return render_template('adminmanageaccounts.html',title='Manage Accounts',adminManageAccounts=adminManageAccounts,registeredUsers=registeredUsers,adminusers=adminusers)
+                  return render_template('adminmanageaccounts.html',title='Manage Accounts',adminManageAccounts=adminManageAccounts,registeredUsers=registeredUsers,adminusers=adminusers,form6=form6)
                
-               elif request.form.get('form_type') == 'admin_loginas':
-                  userName = request.form.get("loginas_name")
-                  userEmail = request.form.get("loginas_email")
+               elif request.form.get('form_type_loginuser') == 'admin_loginas':
+                  if form6.validate_on_submit():
+                     userName = request.form.get("loginas_name")
+                     userEmail = request.form.get("loginas_email")
 
-                  session.pop('ecart',None)
-                  session.pop('tQuantityFmt',None)
-                  session['email'] = userEmail
-                  session['name'] = userName
+                     session.pop('ecart',None)
+                     session.pop('tQuantityFmt',None)
+                     session['email'] = userEmail
+                     session['name'] = userName
+                     
+                     flash(f"Logged in as {userName}!")
+                     return redirect(url_for('index'))
                   
-                  flash(f"Logged in as {userName}!")
-                  return redirect(url_for('index'))
+                  else:
+                     flash("FORM VALIDATION ERROR")
+                     return redirect(request.referrer)
 
                elif request.form.get('form_type') == 'admin_deluseracc':
                   adminManageAccounts = True
