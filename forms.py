@@ -95,3 +95,7 @@ class AdminRegistForm(FlaskForm):
     setEmail = EmailField('Set Email', validators=[InputRequired(), Email()], render_kw={"placeholder": "Set Email"})
     setPassword = PasswordField('Set Password', validators=[InputRequired()], render_kw={"placeholder": "Set Password"})
     submit = SubmitField('Submit')
+
+class AdminOTPForm(FlaskForm):
+    formotp = IntegerField('Enter OTP', validators=[InputRequired()], render_kw={"placeholder": "Enter OTP"})
+    submit = SubmitField('Submit')

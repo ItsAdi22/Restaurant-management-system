@@ -1,7 +1,7 @@
 from flask import Flask, render_template, url_for, redirect, request, session, flash
 from flask_mysqldb import MySQL
 from flask_mail import Mail,Message
-from forms import SignupForm, LoginForm, MenuForm, PaymentForm, AddFoodForm, DeleteFoodForm, StripeKeysForm, MarketingForm, CompleteOrderForm, DeleteOrderForm, LoginAsUserForm, DeleteUserAccForm, AddAdminAccForm, DelAdminAccForm, AdminLoginForm, AdminRegistForm
+from forms import SignupForm, LoginForm, MenuForm, PaymentForm, AddFoodForm, DeleteFoodForm, StripeKeysForm, MarketingForm, CompleteOrderForm, DeleteOrderForm, LoginAsUserForm, DeleteUserAccForm, AddAdminAccForm, DelAdminAccForm, AdminLoginForm, AdminRegistForm, AdminOTPForm
 import stripe
 import datetime
 import random
@@ -80,7 +80,17 @@ def sendemail(email, body, subject):
             with app.test_request_context():
                print(f'An error occurred while sending email to {email}. Error message: {str(e)}')
 
-
+def generate_otp(length=6):
+    try:
+        if length < 1:
+            raise ValueError("OTP length must be at least 1")
+        
+        otp = ''.join(secrets.choice('0123456789') for _ in range(length))
+        
+        return int(otp)
+    except Exception as e:
+        print(f"Error generating OTP: {e}")
+        return None
 
 @app.route('/')
 def index():
@@ -514,34 +524,47 @@ def adminauth():
 @app.route('/admin/verify',methods=['POST','GET'])
 def verifyadmin():
    if 'admin' in session:
+      form = AdminOTPForm()
       adminMail = session.get('admin')
       global otp
       if request.method == 'POST':
-         formotp = request.form['formotp']
-         try:
-            int(formotp)
-         except:
-               flash("Enter Integer Value")
-               return redirect(url_for('verifyadmin'))
-         else:
-            if int(formotp) == otp:
-               
-               try:
-                  cursor = mysql.connection.cursor()
-                  cursor.execute('UPDATE adminusers SET verified = True WHERE adminmail = %s',(adminMail,))
-                  cursor.fetchone()
-               except Exception as e:
-                  flash(str(e))
-                  return redirect(request.referrer)
-               else:
-                  mysql.connection.commit()
-                  cursor.close()
-                  flash("Your account is now verified!")
-            
-                  return redirect(url_for('admin'))
+         if form.validate_on_submit():
+            formotp = request.form.get("formotp")
+            try:
+               formotp = int(formotp)
+               print(f"formotp : {type(formotp)} -> {formotp} :::: otp : {type(otp)} -> {otp}")
+            except:
+                  flash("Enter Integer Value")
+                  return redirect(url_for('verifyadmin'))
             else:
-               flash(f"OTP IS INVALID!, Please check your inbox for new OTP")
-               return redirect(request.referrer)
+               if int(formotp) == otp:
+                  
+                  try:
+                     cursor = mysql.connection.cursor()
+                     cursor.execute('UPDATE adminusers SET verified = True WHERE adminmail = %s',(adminMail,))
+                     cursor.fetchone()
+                  except Exception as e:
+                     flash(str(e))
+                     return redirect(request.referrer)
+                  else:
+                     mysql.connection.commit()
+                     cursor.close()
+                     flash("Your account is now verified!")
+               
+                     return redirect(url_for('admin'))
+               else:
+                  flash(f"OTP IS INVALID!, Please check your inbox for new OTP")
+                  return redirect(request.referrer)
+               
+         else:
+            for x in form.errors:
+               if (x == "formotp"):
+                  flash("Enter a valid OTP!")
+
+               else:
+                  flash("FORM VALIDATION ERROR")
+
+            return redirect(request.referrer)  
 
       else:
       
@@ -557,7 +580,7 @@ def verifyadmin():
 
          else:
             if isVerifiedFormatted == str(0):
-               otp = random.randint(100000, 999999)
+               otp = generate_otp()
                print('otp is', otp)
 
                try:
@@ -571,7 +594,7 @@ def verifyadmin():
                   return redirect(url_for('admin'))
                else:
                   flash(f"OTP has been sent to the following email: {adminMail}")
-                  return render_template('adminotp.html')  
+                  return render_template('adminotp.html',form=form)  
             else:
                flash("Your account is already verified!")
                return redirect(url_for('admin'))
