@@ -99,3 +99,12 @@ class AdminRegistForm(FlaskForm):
 class AdminOTPForm(FlaskForm):
     formotp = IntegerField('Enter OTP', validators=[InputRequired()], render_kw={"placeholder": "Enter OTP"})
     submit = SubmitField('Submit')
+
+class AdminForgetPassForm(FlaskForm):
+    adminforgetMail = EmailField('Email', validators=[InputRequired(), Email()], render_kw={"placeholder": "Enter your email"})
+    submit = SubmitField('Submit')
+
+class AdminForgetPassOTPForm(FlaskForm):
+    form_type_forgetotp = HiddenField('Form Type', default='admin_forgetOTP')
+    formotp = IntegerField('Enter OTP', validators=[InputRequired()], render_kw={"placeholder": "Enter OTP"})
+    submit = SubmitField('Submit')

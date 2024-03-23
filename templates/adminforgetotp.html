@@ -22,9 +22,10 @@
       {% endwith %}
         <div class="form">
             <form class="login-form" action="{{url_for('admin')}}" method="post">
-                <input type="hidden" name="form_type" value="admin_forgetOTP">
-                <input type="text" placeholder="Enter OTP" name="formotp" />
-                <input type="submit" value="submit" >
+                {{ form1.csrf_token }}
+                {{ form1.form_type_forgetotp (value="admin_forgetOTP") }}
+                {{ form1.formotp }}
+                {{ form1.submit}}
                 <!-- <a href="{{url_for('verifyadmin')}}">Resend Otp</a> -->
             </form>
 

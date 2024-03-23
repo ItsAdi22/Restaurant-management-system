@@ -1,7 +1,7 @@
 from flask import Flask, render_template, url_for, redirect, request, session, flash
 from flask_mysqldb import MySQL
 from flask_mail import Mail,Message
-from forms import SignupForm, LoginForm, MenuForm, PaymentForm, AddFoodForm, DeleteFoodForm, StripeKeysForm, MarketingForm, CompleteOrderForm, DeleteOrderForm, LoginAsUserForm, DeleteUserAccForm, AddAdminAccForm, DelAdminAccForm, AdminLoginForm, AdminRegistForm, AdminOTPForm
+from forms import SignupForm, LoginForm, MenuForm, PaymentForm, AddFoodForm, DeleteFoodForm, StripeKeysForm, MarketingForm, CompleteOrderForm, DeleteOrderForm, LoginAsUserForm, DeleteUserAccForm, AddAdminAccForm, DelAdminAccForm, AdminLoginForm, AdminRegistForm, AdminOTPForm, AdminForgetPassForm, AdminForgetPassOTPForm
 import stripe
 import datetime
 import random
@@ -613,46 +613,56 @@ def adminout():
 
 @app.route('/admin/forget-pass',methods=['GET','POST'])
 def forgetpass():
-
+   form = AdminForgetPassForm()
+   form1 = AdminForgetPassOTPForm()
    if request.method == 'POST':   
-      adminforgetMail = request.form['adminforgetMail']      
-      
-      try:
-         cursor = mysql.connection.cursor()
-         cursor.execute('SELECT * FROM adminusers where adminmail = %s',(adminforgetMail,))
-         adminAccExists = cursor.fetchone()
-         print(f'**********AdminAccExists: {adminAccExists}**********')
-
-      except Exception as e:
-         flash(str(e))
-         return redirect(request.referrer)
-
-      else:
-         if adminAccExists is not None:
-            
-            try:
-               session['forgetmail'] = adminforgetMail
-               global otp
-               otp = random.randint(100000, 999999)
-               body = f'Your Otp: {otp}'
-               subject = 'Vintage Cafe OTP | Forget Password'
-               threading.Thread(target=lambda: sendemail(adminforgetMail, body, subject)).start()
-
-            except Exception as e:
-               flash(str(e))
-               return redirect(url_for('admin'))
+      if form.validate_on_submit():
+         adminforgetMail = request.form.get("adminforgetMail")    
          
-            else:
-               flash(f"Otp to reset password has been sent to the following email: {adminforgetMail}")
-            return render_template('adminforgetotp.html')  
-         
+         try:
+            cursor = mysql.connection.cursor()
+            cursor.execute('SELECT * FROM adminusers where adminmail = %s',(adminforgetMail,))
+            adminAccExists = cursor.fetchone()
+            print(f'**********AdminAccExists: {adminAccExists}**********')
+
+         except Exception as e:
+            flash(str(e))
+            return redirect(request.referrer)
+
          else:
-            flash("Admin account does not exists.")
-            return redirect(url_for('forgetpass'))
+            if adminAccExists is not None:
+               
+               try:
+                  session['forgetmail'] = adminforgetMail
+                  global otp
+                  otp = generate_otp()
+                  body = f'Your Otp: {otp}'
+                  subject = 'Vintage Cafe OTP | Forget Password'
+                  threading.Thread(target=lambda: sendemail(adminforgetMail, body, subject)).start()
+                  print(otp)
 
+               except Exception as e:
+                  flash(str(e))
+                  return redirect(url_for('admin'))
+            
+               else:
+                  flash(f"Otp to reset password has been sent to the following email: {adminforgetMail}")
+                  return render_template('adminforgetotp.html',form1=form1)  
+            
+            else:
+               flash("Admin account does not exists.")
+               return redirect(url_for('forgetpass'))
+      else:
+         for x in form.errors:
+            if( x == "adminforgetMail"):
+               flash("Enter valid email!")
+            else:
+               flash("FORM VALIDATION ERROR")
+
+            return redirect(request.referrer)
    else:
       flash("We will send you OTP on your email for verification")
-      return render_template('adminforget.html')
+      return render_template('adminforget.html',form=form)
    
 
 @app.route('/admin/set-new-pass',methods=['POST','GET'])
@@ -1099,24 +1109,38 @@ def admin():
             
    else:
       if request.method == 'POST':
-         if request.form.get('form_type') == 'admin_forgetOTP':
-            formotp = request.form.get('formotp')
-            global otp
-            try:
-               int(formotp)
+         form1 = AdminForgetPassOTPForm()
+         # use form1 (since its used in the adminforget.html)
 
-            except:
-               flash("Enter Valid Integer")
-               return redirect(url_for('admin'))
+         if request.form.get('form_type_forgetotp') == 'admin_forgetOTP':
+            if form1.validate_on_submit():
+            
+               formotp = request.form.get('formotp')
+               global otp
+               try:
+                  formotp = int(formotp)
 
-            else:
-               if otp == int(formotp):
-                  print("OTP VERIFIED SUCCESSFULLY!!!")
-                  return render_template('adminsetnewpass.html')
-               
+               except:
+                  flash("Enter Valid Integer")
+                  return redirect(url_for('admin'))
+
                else:
-                  flash("Invalid OTP")
-                  return redirect(url_for('forgetpass'))
+                  if otp == int(formotp):
+                     print("OTP VERIFIED SUCCESSFULLY!!!")
+                     return render_template('adminsetnewpass.html')
+                  
+                  else:
+                     flash("Invalid OTP")
+                     return redirect(url_for('forgetpass'))
+            else:
+               for x in form1.errors:
+                  if (x == "formotp"):
+                     flash("Enter valid otp!")
+                  
+                  else:
+                     flash("FORM VALIDATION ERROR !")
+                  
+               return redirect(request.referrer)
          else:
             flash("AN ERROR OCCURRED! --> Try clearing cookies!")
             return redirect(request.referrer)
