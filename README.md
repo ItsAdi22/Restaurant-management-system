@@ -26,8 +26,9 @@
 # ---------------------------------------------------------------
 
 Issues:
-  - No implementation of csrf tokens
-  - Form fields are not secured
+  - Admin page is not responsive
+  - ~No implementation of csrf tokens ~
+  - ~Form fields are not secured~
   - Passwords are not hashed
   - Public_key of payment gateway is exposed ⚠️
   - ~Item prices can be modified using inspect element~
