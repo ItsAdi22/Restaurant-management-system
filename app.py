@@ -839,6 +839,48 @@ def admin():
                      flash("FORM VALIDATION ERROR")
                      return redirect(request.referrer)
                   
+               elif request.form.get('form_type_addadmin') == 'admin_AddAddAcc':
+                  if form8.validate_on_submit():
+                     adminManageAccounts = True
+                     newAdminName = request.form.get('newAdminName')
+                     newAdminEmail = request.form.get('newAdminEmail')
+                     NewAdminpass = secrets.token_hex(6)
+                     
+                     sql = "INSERT INTO adminusers(username,adminmail,password,verified,owner) VALUES(%s,%s,%s,%s,%s)"
+                     value = (newAdminName,newAdminEmail,NewAdminpass,0,0)
+                     cursor.execute(sql,value)
+                     mysql.connection.commit()
+                     
+                     subject = 'Your admin account credentials!'
+                     body = f'''New Admin account created!
+
+                     username: {newAdminName}
+                     password: {NewAdminpass}
+                     '''
+                     threading.Thread(target=lambda: sendemail(newAdminEmail, body, subject)).start()
+                     flash("New admin account created!")
+
+                     cursor.execute("SELECT name,email from login")
+                     registeredUsers = cursor.fetchall()
+
+                     cursor.execute('SELECT username,adminmail,verified,owner from adminusers')
+                     adminusers = cursor.fetchall()
+                     cursor.close()
+                     return render_template('adminmanageaccounts.html',title='Manage Accounts',adminManageAccounts=adminManageAccounts,registeredUsers=registeredUsers,adminusers=adminusers,form6=form6,form7=form7,form8=form8)
+                  
+                  else:
+                     for x in form8.errors:
+                        if (x == "newAdminEmail"):
+                           flash("Please enter a valid email!")
+                        
+                        elif (x == "newAdminName"):
+                           flash("Please enter a valid username!")
+                        
+                        else:
+                           flash("FORM VALIDATION ERROR")
+
+                     return redirect(request.referrer)
+                  
                elif request.form.get('form_type') == 'admin_delAddacc':
                   adminManageAccounts = True
                   delAddMail = request.form.get('delAddMail')
@@ -890,7 +932,6 @@ def admin():
                   
                   else:
                      flash("FORM VALIDATION ERROR")
-                     print("FORM VALIDATION ERROR")
                      return redirect(url_for('admin'))
                
                elif request.form.get('form_type_del') == "form5":
@@ -913,47 +954,7 @@ def admin():
                      flash("FORM VALIDATION ERROR")
                      return redirect(url_for('admin'))
                      
-               elif request.form.get('form_type_addadmin') == 'admin_AddAddAcc':
-                  if form8.validate_on_submit():
-                     adminManageAccounts = True
-                     newAdminName = request.form.get('newAdminName')
-                     newAdminEmail = request.form.get('newAdminEmail')
-                     NewAdminpass = secrets.token_hex(6)
-                     
-                     sql = "INSERT INTO adminusers(username,adminmail,password,verified,owner) VALUES(%s,%s,%s,%s,%s)"
-                     value = (newAdminName,newAdminEmail,NewAdminpass,0,0)
-                     cursor.execute(sql,value)
-                     mysql.connection.commit()
-                     
-                     subject = 'Your admin account credentials!'
-                     body = f'''New Admin account created!
 
-                     username: {newAdminName}
-                     password: {NewAdminpass}
-                     '''
-                     threading.Thread(target=lambda: sendemail(newAdminEmail, body, subject)).start()
-                     flash("New admin account created!")
-
-                     cursor.execute("SELECT name,email from login")
-                     registeredUsers = cursor.fetchall()
-
-                     cursor.execute('SELECT username,adminmail,verified,owner from adminusers')
-                     adminusers = cursor.fetchall()
-                     cursor.close()
-                     return render_template('adminmanageaccounts.html',title='Manage Accounts',adminManageAccounts=adminManageAccounts,registeredUsers=registeredUsers,adminusers=adminusers,form6=form6,form7=form7,form8=form8)
-                  
-                  else:
-                     for x in form8.errors:
-                        if (x == "newAdminEmail"):
-                           flash("Please enter a valid email!")
-                        
-                        elif (x == "newAdminName"):
-                           flash("Please enter a valid username!")
-                        
-                        else:
-                           flash("FORM VALIDATION ERROR")
-                           
-                     return redirect(request.referrer)
                else:
                   #today sales
                   now = datetime.datetime.now()
