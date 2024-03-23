@@ -64,7 +64,7 @@ class DeleteOrderForm(FlaskForm):
 class LoginAsUserForm(FlaskForm):
     form_type_loginuser = HiddenField()
     loginas_name = HiddenField(validators=[InputRequired()])
-    loginas_email = HiddenField(validators=[InputRequired()])
+    loginas_email = HiddenField(validators=[InputRequired(), Email()])
     submit = SubmitField('Login as user')
 
 class DeleteUserAccForm(FlaskForm):
@@ -88,4 +88,10 @@ class DelAdminAccForm(FlaskForm):
 class AdminLoginForm(FlaskForm):
     adminUsername = StringField('Username', validators=[InputRequired()],render_kw={"placeholder": "Enter your username"})
     adminPassword = PasswordField('Password', validators=[InputRequired()],render_kw={"placeholder": "Enter your password"})
+    submit = SubmitField('Submit')
+
+class AdminRegistForm(FlaskForm):
+    setUsername = StringField('Set Username', validators=[InputRequired()], render_kw={"placeholder": "Set Username"})
+    setEmail = EmailField('Set Email', validators=[InputRequired(), Email()], render_kw={"placeholder": "Set Email"})
+    setPassword = PasswordField('Set Password', validators=[InputRequired()], render_kw={"placeholder": "Set Password"})
     submit = SubmitField('Submit')

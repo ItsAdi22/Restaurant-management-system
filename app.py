@@ -1,7 +1,7 @@
 from flask import Flask, render_template, url_for, redirect, request, session, flash
 from flask_mysqldb import MySQL
 from flask_mail import Mail,Message
-from forms import SignupForm, LoginForm, MenuForm, PaymentForm, AddFoodForm, DeleteFoodForm, StripeKeysForm, MarketingForm, CompleteOrderForm, DeleteOrderForm, LoginAsUserForm, DeleteUserAccForm, AddAdminAccForm, DelAdminAccForm, AdminLoginForm
+from forms import SignupForm, LoginForm, MenuForm, PaymentForm, AddFoodForm, DeleteFoodForm, StripeKeysForm, MarketingForm, CompleteOrderForm, DeleteOrderForm, LoginAsUserForm, DeleteUserAccForm, AddAdminAccForm, DelAdminAccForm, AdminLoginForm, AdminRegistForm
 import stripe
 import datetime
 import random
@@ -421,6 +421,7 @@ def adminlogin():
    createMissingTables()
    if 'admin' not in session:
       form = AdminLoginForm()
+      form1 = AdminRegistForm()
       if request.method == 'POST':
          
          if form.validate_on_submit():
@@ -452,7 +453,7 @@ def adminlogin():
                   return redirect(url_for('admin'))
                else:
                   flash("No admin accounts exists")
-                  return render_template('adminlogin.html',noacc=True,form=form)
+                  return render_template('adminlogin.html',noacc=True,form=form,form1=form1)
          else:
             for x in form.errors:
                if (x == "adminUsername"):
@@ -464,31 +465,49 @@ def adminlogin():
             
             return redirect(request.referrer)
       else:
-         return render_template('adminlogin.html',form=form)
+         return render_template('adminlogin.html',form=form,form1=form1)
    else:
       return redirect(url_for('admin'))
 
 @app.route('/adminauth',methods=['POST','GET'])
 def adminauth():
    if request.method == 'POST':
-      adminUsername = request.form['setUsername']
-      adminEmail = request.form['setEmail']
-      adminPassword = request.form['setPassword']
+      form1 = AdminRegistForm()
+      
+      if form1.validate_on_submit():
+         adminUsername = request.form.get("setUsername")
+         adminEmail = request.form.get("setEmail")
+         adminPassword = request.form.get("setPassword")
 
-      try:
-         cursor = mysql.connection.cursor()
-         sql = "INSERT INTO adminusers(username,adminmail,password,verified,owner) VALUES(%s,%s,%s,%s,%s)"
-         value = (adminUsername,adminEmail,adminPassword,0,1)
-         cursor.execute(sql,value)
-         mysql.connection.commit()
-         cursor.close()
-         flash("Admin account created successfully!")
+         try:
+            cursor = mysql.connection.cursor()
+            sql = "INSERT INTO adminusers(username,adminmail,password,verified,owner) VALUES(%s,%s,%s,%s,%s)"
+            value = (adminUsername,adminEmail,adminPassword,0,1)
+            cursor.execute(sql,value)
+            mysql.connection.commit()
+            cursor.close()
+            flash("Admin account created successfully!")
 
-      except Exception as e:
-         return render_template('error.html',e=e)
+         except Exception as e:
+            return render_template('error.html',e=e)
 
+         else:
+            return redirect(url_for('admin'))
+      
       else:
-         return redirect(url_for('admin'))
+         for x in form1.errors:
+            if(x == "setUsername"):
+               flash("Enter valid username!")
+            
+            elif(x == "setEmail"):
+               flash("Enter valid email!")
+            
+            elif(x == "setPassword"):
+               flash("Enter valid password!")
+            
+            else:
+               flash("FORM VALIDATION ERROR")
+         return redirect(request.referrer)
    else:
       return redirect(url_for('admin'))
 
