@@ -54,12 +54,13 @@ th, td {
 <div style="background-color: #f0f0f0; padding: 10px; margin-top: 5%; border: 1px solid #ccc;">
     <h2>Add New Admin Account</h2>
     <form action="{{url_for('admin')}}" method="post" class="form-group">
+        {{ form8.csrf_token }}
+        {{ form8.form_type_addadmin (value="admin_AddAddAcc") }}
         <div style="display: inline-flex; justify-content:space-around;">
-            <input type="hidden" name="form_type" value="admin_AddAddAcc">
             <span class="input-group-text" id="basic-addon1">@</span>
-            <input type="text" name="newAdminName" placeholder="username" class="form-control" required> 
-            <input type="email" name="newAdminEmail" placeholder="Admin Email" class="form-control" required>
-            <input type="submit" value="Create Account" class="btn btn-primary">
+            {{ form8.newAdminName }}
+            {{ form8.newAdminEmail }}
+            {{ form8.submit }}
         </div>
         <small class="form-text text-muted">Password will be auto generated and sent via email!</small>
     </form>

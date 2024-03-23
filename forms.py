@@ -72,5 +72,11 @@ class DeleteUserAccForm(FlaskForm):
     deluserMail = HiddenField(validators=[InputRequired()])
     submit = SubmitField('Delete Account', render_kw={"class": "btn btn-danger"})
 
+class AddAdminAccForm(FlaskForm):
+    form_type_addadmin = HiddenField(default="admin_AddAddAcc")
+    newAdminName = StringField('Username', validators=[InputRequired()], render_kw={"class": "form-control", "placeholder": "username"})
+    newAdminEmail = EmailField('Admin Email', validators=[InputRequired(), Email()], render_kw={"class": "form-control", "placeholder": "Admin Email"})
+    submit = SubmitField('Create Account', render_kw={"class": "btn btn-primary"})
+
 
 #################################### ADMIN SECTION FORMS ENDS ####################################
