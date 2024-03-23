@@ -34,16 +34,18 @@ th, td {
             <td>{{x}}</td>  
             <td>{{y}}</td>  
             <td><form action="{{url_for('admin')}}" method="post">
-                {{ form6.csrf_token }}
-                {{ form6.form_type_loginuser (value= "admin_loginas") }}
-                {{ form6.loginas_name (value=x) }}
-                {{ form6.loginas_email (value=y) }}
-                {{ form6.submit(class="btn btn-primary", value="Login as "+x) }}
+                  {{ form6.csrf_token }}
+                  {{ form6.form_type_loginuser (value= "admin_loginas") }}
+                  {{ form6.loginas_name (value=x) }}
+                  {{ form6.loginas_email (value=y) }}
+                  {{ form6.submit(class="btn btn-primary", value="Login as "+x) }}
             </form></td>
             <td><form action="{{url_for('admin')}}" method="post">
-                <input type="hidden" name="form_type" value="admin_deluseracc">
-                <input type="hidden" name="deluserMail" value="{{y}}">
-                <input type="submit" value="Delete Account" class="btn btn-danger">
+                  {{ form7.csrf_token }}
+                  {{ form7.form_type_deluser (value="admin_deluseracc") }}
+                  {{ form7.deluserMail (value=y) }}
+                  {{ form7.submit(class="btn btn-danger") }}
+        
             </form></td>
         </tr>
         {% endfor %}

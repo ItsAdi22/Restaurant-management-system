@@ -2,7 +2,6 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, HiddenField, TextAreaField, SelectField, EmailField, IntegerField
 from wtforms.validators import DataRequired, Email, Length, InputRequired, EqualTo, NumberRange, URL
 
-
 class SignupForm(FlaskForm):
     name = StringField('Username', validators=[DataRequired(), Length(min=4, max=20)])
     email = EmailField('Email', validators=[DataRequired(), Email()])
@@ -53,19 +52,25 @@ class MarketingForm(FlaskForm):
     submit = SubmitField('Send Email!')
 
 class CompleteOrderForm(FlaskForm):
-    form_type_add = HiddenField("Form Type", default="form4")
+    form_type_add = HiddenField("Form Type", default="form4",validators=[InputRequired()])
     stripeid = HiddenField('Stripe ID', validators=[InputRequired()])
     submit = SubmitField('Complete Order')
 
 class DeleteOrderForm(FlaskForm):
-    form_type_del = HiddenField("Form Type", default="form5")
+    form_type_del = HiddenField("Form Type", default="form5",validators=[InputRequired()])
     stripeid = HiddenField('Stripe ID', validators=[InputRequired()])
     submit = SubmitField('Delete Order')
 
-
-class LoginAsUser(FlaskForm):
+class LoginAsUserForm(FlaskForm):
     form_type_loginuser = HiddenField()
     loginas_name = HiddenField(validators=[InputRequired()])
     loginas_email = HiddenField(validators=[InputRequired()])
     submit = SubmitField('Login as user')
+
+class DeleteUserAccForm(FlaskForm):
+    form_type_deluser = HiddenField(default="admin_deluseracc",validators=[InputRequired()])
+    deluserMail = HiddenField(validators=[InputRequired()])
+    submit = SubmitField('Delete Account', render_kw={"class": "btn btn-danger"})
+
+
 #################################### ADMIN SECTION FORMS ENDS ####################################
