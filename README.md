@@ -27,7 +27,7 @@
 
 Issues:
   - Admin page is not responsive
-  - ~No implementation of csrf tokens ~
+  - ~No implementation of csrf tokens~
   - ~Form fields are not secured~
   - Passwords are not hashed
   - Public_key of payment gateway is exposed ⚠️
