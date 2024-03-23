@@ -858,7 +858,7 @@ def admin():
 
                   return render_template('adminmanageorders.html',adminManageOrders=adminManageOrders,pendingorders=pendingorders,allOrders=allOrders,form4=form4,form5=form5)
 
-               elif request.form.get('form_type') == "form4":
+               elif request.form.get('form_type_add') == "form4":
                   if form4.validate_on_submit():
                      adminManageOrders = True
 
@@ -880,7 +880,7 @@ def admin():
                      print("FORM VALIDATION ERROR")
                      return redirect(url_for('admin'))
                
-               elif request.form.get('form_type') == "form5":
+               elif request.form.get('form_type_del') == "form5":
                   if form5.validate_on_submit():
                      adminManageOrders = True
                      stripeid = request.form.get('stripeid')

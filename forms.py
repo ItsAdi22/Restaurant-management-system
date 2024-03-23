@@ -53,9 +53,11 @@ class MarketingForm(FlaskForm):
     submit = SubmitField('Send Email!')
 
 class CompleteOrderForm(FlaskForm):
+    form_type_add = HiddenField("Form Type", default="form4")
     stripeid = HiddenField('Stripe ID', validators=[InputRequired()])
-    submit4 = SubmitField('Complete Order')
+    submit = SubmitField('Complete Order')
 
 class DeleteOrderForm(FlaskForm):
+    form_type_del = HiddenField("Form Type", default="form5")
     stripeid = HiddenField('Stripe ID', validators=[InputRequired()])
-    submit5 = SubmitField('Delete Order')
+    submit = SubmitField('Delete Order')
