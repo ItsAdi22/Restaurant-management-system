@@ -108,3 +108,8 @@ class AdminForgetPassOTPForm(FlaskForm):
     form_type_forgetotp = HiddenField('Form Type', default='admin_forgetOTP')
     formotp = IntegerField('Enter OTP', validators=[InputRequired()], render_kw={"placeholder": "Enter OTP"})
     submit = SubmitField('Submit')
+
+class AdminSetNewPassForm(FlaskForm):
+    newPass = PasswordField('Set New Password', validators=[InputRequired()], render_kw={"placeholder": "Set New Password"})
+    newConfPass = PasswordField('Confirm New Password', validators=[InputRequired(), EqualTo('newPass', message='Passwords must match')], render_kw={"placeholder": "Confirm New Password"})
+    submit = SubmitField('Submit')

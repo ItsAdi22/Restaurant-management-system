@@ -1,10 +1,9 @@
 from flask import Flask, render_template, url_for, redirect, request, session, flash
 from flask_mysqldb import MySQL
 from flask_mail import Mail,Message
-from forms import SignupForm, LoginForm, MenuForm, PaymentForm, AddFoodForm, DeleteFoodForm, StripeKeysForm, MarketingForm, CompleteOrderForm, DeleteOrderForm, LoginAsUserForm, DeleteUserAccForm, AddAdminAccForm, DelAdminAccForm, AdminLoginForm, AdminRegistForm, AdminOTPForm, AdminForgetPassForm, AdminForgetPassOTPForm
+from forms import SignupForm, LoginForm, MenuForm, PaymentForm, AddFoodForm, DeleteFoodForm, StripeKeysForm, MarketingForm, CompleteOrderForm, DeleteOrderForm, LoginAsUserForm, DeleteUserAccForm, AddAdminAccForm, DelAdminAccForm, AdminLoginForm, AdminRegistForm, AdminOTPForm, AdminForgetPassForm, AdminForgetPassOTPForm, AdminSetNewPassForm
 import stripe
 import datetime
-import random
 import threading
 import secrets
 import os
@@ -667,47 +666,66 @@ def forgetpass():
 
 @app.route('/admin/set-new-pass',methods=['POST','GET'])
 def setnewpass():
+
    if request.method == 'POST':
-      newpass = request.form.get("newPass")
-      newConfPass = request.form.get("newConfPass")
-      
-      if str(newpass) == str(newConfPass):  
-         sessionForgetMail = session.get('forgetmail')
-         print(f'sessionforgetmail is {sessionForgetMail} *********************************')
+
+      # use form2 cuz its used in the adminroute - adminsetnewpass.html
+      form2 = AdminSetNewPassForm()
+
+      if form2.validate_on_submit():
+         newpass = request.form.get("newPass")
+         newConfPass = request.form.get("newConfPass")
          
-         try:
-            cursor = mysql.connection.cursor()
-            sql = 'UPDATE adminusers SET password = %s  Where adminmail = %s'
-            cursor.execute(sql, (newpass, sessionForgetMail))
-            mysql.connection.commit()
-         
-         except Exception as e:
-            flash(str(e))
-            return redirect(request.referrer)
+         if str(newpass) == str(newConfPass):  
+            sessionForgetMail = session.get('forgetmail')
+            print(f'sessionforgetmail is {sessionForgetMail} *********************************')
+            
+            try:
+               cursor = mysql.connection.cursor()
+               sql = 'UPDATE adminusers SET password = %s  Where adminmail = %s'
+               cursor.execute(sql, (newpass, sessionForgetMail))
+               mysql.connection.commit()
+            
+            except Exception as e:
+               flash(str(e))
+               return redirect(request.referrer)
+
+            else:
+               cursor.execute('SELECT username FROM adminusers where adminmail = %s',(sessionForgetMail,))
+               username = cursor.fetchone()
+               usernamefmt = username[0]
+               
+               body = f'''Admin Password has been successfully updated
+               
+               Admin Credentials:
+               
+               username: {usernamefmt}
+               password: Your Password
+               '''
+               subject = 'Vintage Cafe | Admin Password Updated'
+               threading.Thread(target=lambda: sendemail(sessionForgetMail, body, subject)).start()
+               session.pop('forgetmail',None)
+               session.pop('admin',None)
+
+               flash("Admin Password updated Successfully!")
+
+               return redirect(url_for('admin'))
 
          else:
-            cursor.execute('SELECT username FROM adminusers where adminmail = %s',(sessionForgetMail,))
-            username = cursor.fetchone()
-            usernamefmt = username[0]
-            
-            body = f'''Admin Password has been successfully updated
-            
-            Admin Credentials:
-            
-            username: {usernamefmt}
-            password: Your Password
-            '''
-            subject = 'Vintage Cafe | Admin Password Updated'
-            threading.Thread(target=lambda: sendemail(sessionForgetMail, body, subject)).start()
-            session.pop('forgetmail',None)
-            session.pop('admin',None)
-
-            flash("Admin Password updated Successfully!")
-
-            return redirect(url_for('admin'))
-
+            flash("Password doesn't match with confirm password field !")
+            return redirect(url_for('forgetpass'))
+      
       else:
-         flash("Password doesn't match with confirm password field !")
+         for x in form2.errors:
+            if ( x == "newPass"):
+               flash("Enter valid password!")
+            
+            elif (x == "newConfPass"):
+               flash("password and confirm password fields should match!")
+            
+            else:
+               flash("FORM VALIDATION ERROR")
+
          return redirect(url_for('forgetpass'))
    
    else:
@@ -1109,7 +1127,9 @@ def admin():
             
    else:
       if request.method == 'POST':
+         # use form1 (since its used in the adminforget.html)
          form1 = AdminForgetPassOTPForm()
+         form2 = AdminSetNewPassForm()
          # use form1 (since its used in the adminforget.html)
 
          if request.form.get('form_type_forgetotp') == 'admin_forgetOTP':
@@ -1127,7 +1147,7 @@ def admin():
                else:
                   if otp == int(formotp):
                      print("OTP VERIFIED SUCCESSFULLY!!!")
-                     return render_template('adminsetnewpass.html')
+                     return render_template('adminsetnewpass.html',form2=form2)
                   
                   else:
                      flash("Invalid OTP")
