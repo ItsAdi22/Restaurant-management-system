@@ -25,7 +25,7 @@ class PaymentForm(FlaskForm):
     message = TextAreaField('Message', render_kw={'rows': 3}, description='Leave empty if you don\'t want to send any custom message')
     submit = SubmitField('Submit')
 
-#################################### ADMIN SECTION FORMS BEGINS ####################################
+#################################### ADMIN ROUTE FORMS BEGINS ####################################
     
 class AddFoodForm(FlaskForm):
     foodtitle = StringField('Title', validators=[InputRequired()])
@@ -64,7 +64,7 @@ class DeleteOrderForm(FlaskForm):
 class LoginAsUserForm(FlaskForm):
     form_type_loginuser = HiddenField()
     loginas_name = HiddenField(validators=[InputRequired()])
-    loginas_email = HiddenField(validators=[InputRequired()])
+    loginas_email = HiddenField(validators=[InputRequired(), Email()])
     submit = SubmitField('Login as user')
 
 class DeleteUserAccForm(FlaskForm):
@@ -83,4 +83,33 @@ class DelAdminAccForm(FlaskForm):
     delAddMail = HiddenField('Email',validators=[InputRequired(), Email()])
     submit = SubmitField('Delete Account', render_kw={"class": "btn btn-danger"})
 
-#################################### ADMIN SECTION FORMS ENDS ####################################
+#################################### ADMIN ROUTE FORMS ENDS ####################################
+    
+class AdminLoginForm(FlaskForm):
+    adminUsername = StringField('Username', validators=[InputRequired()],render_kw={"placeholder": "Enter your username"})
+    adminPassword = PasswordField('Password', validators=[InputRequired()],render_kw={"placeholder": "Enter your password"})
+    submit = SubmitField('Submit')
+
+class AdminRegistForm(FlaskForm):
+    setUsername = StringField('Set Username', validators=[InputRequired()], render_kw={"placeholder": "Set Username"})
+    setEmail = EmailField('Set Email', validators=[InputRequired(), Email()], render_kw={"placeholder": "Set Email"})
+    setPassword = PasswordField('Set Password', validators=[InputRequired()], render_kw={"placeholder": "Set Password"})
+    submit = SubmitField('Submit')
+
+class AdminOTPForm(FlaskForm):
+    formotp = IntegerField('Enter OTP', validators=[InputRequired()], render_kw={"placeholder": "Enter OTP"})
+    submit = SubmitField('Submit')
+
+class AdminForgetPassForm(FlaskForm):
+    adminforgetMail = EmailField('Email', validators=[InputRequired(), Email()], render_kw={"placeholder": "Enter your email"})
+    submit = SubmitField('Submit')
+
+class AdminForgetPassOTPForm(FlaskForm):
+    form_type_forgetotp = HiddenField('Form Type', default='admin_forgetOTP')
+    formotp = IntegerField('Enter OTP', validators=[InputRequired()], render_kw={"placeholder": "Enter OTP"})
+    submit = SubmitField('Submit')
+
+class AdminSetNewPassForm(FlaskForm):
+    newPass = PasswordField('Set New Password', validators=[InputRequired()], render_kw={"placeholder": "Set New Password"})
+    newConfPass = PasswordField('Confirm New Password', validators=[InputRequired(), EqualTo('newPass', message='Passwords must match')], render_kw={"placeholder": "Confirm New Password"})
+    submit = SubmitField('Submit')

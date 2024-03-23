@@ -21,20 +21,23 @@
         {% endif %}
       {% endwith %}
         <div class="form">
-            <h2>Administrator Login</h2>
             {% if noacc == True %}
+            <h2>Create Administrator Account</h2>
             <form class="login-form" action="{{url_for('adminauth')}}" method="post">
-                <input type="text" placeholder="Set Username" name="setUsername" />
-                <input type="email" placeholder="Set Email" name="setEmail" />
-                <input type="password" placeholder="Set Password" name="setPassword"/>
-                <input type="submit" value="submit" >
-                
+                {{ form1.csrf_token }}
+                {{ form1.setUsername }}
+                {{ form1.setEmail }}
+                {{ form1.setPassword }}
+                {{ form1.submit }}
             </form>
             {% else %}
+            <h2>Administrator Login</h2>
+            
             <form class="login-form" action="{{url_for('adminlogin')}}" method="post">
-                <input type="text" placeholder="username" name="adminUsername" />
-                <input type="password" placeholder="password" name="adminPassword"/>
-                <input type="submit" value="submit" >
+                {{ form.csrf_token }}
+                {{ form.adminUsername }}
+                {{ form.adminPassword }}
+                {{ form.submit }}
                 <a href="{{url_for('forgetpass')}}">Forgot password ?</a>
             </form>
             {% endif %}

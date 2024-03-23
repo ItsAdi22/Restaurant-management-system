@@ -1,11 +1,9 @@
 from flask import Flask, render_template, url_for, redirect, request, session, flash
 from flask_mysqldb import MySQL
 from flask_mail import Mail,Message
-from forms import SignupForm, LoginForm, MenuForm, PaymentForm, AddFoodForm, DeleteFoodForm, StripeKeysForm, MarketingForm, CompleteOrderForm, DeleteOrderForm, LoginAsUserForm, DeleteUserAccForm, AddAdminAccForm, DelAdminAccForm
-import re
+from forms import SignupForm, LoginForm, MenuForm, PaymentForm, AddFoodForm, DeleteFoodForm, StripeKeysForm, MarketingForm, CompleteOrderForm, DeleteOrderForm, LoginAsUserForm, DeleteUserAccForm, AddAdminAccForm, DelAdminAccForm, AdminLoginForm, AdminRegistForm, AdminOTPForm, AdminForgetPassForm, AdminForgetPassOTPForm, AdminSetNewPassForm
 import stripe
 import datetime
-import random
 import threading
 import secrets
 import os
@@ -81,7 +79,17 @@ def sendemail(email, body, subject):
             with app.test_request_context():
                print(f'An error occurred while sending email to {email}. Error message: {str(e)}')
 
-
+def generate_otp(length=6):
+    try:
+        if length < 1:
+            raise ValueError("OTP length must be at least 1")
+        
+        otp = ''.join(secrets.choice('0123456789') for _ in range(length))
+        
+        return int(otp)
+    except Exception as e:
+        print(f"Error generating OTP: {e}")
+        return None
 
 @app.route('/')
 def index():
@@ -421,96 +429,141 @@ def myorders():
 def adminlogin():
    createMissingTables()
    if 'admin' not in session:
+      form = AdminLoginForm()
+      form1 = AdminRegistForm()
       if request.method == 'POST':
-         adminUsername = request.form['adminUsername']
-         adminPassword = request.form['adminPassword']
          
-         try:
-            cursor = mysql.connection.cursor()
-            #create missing tables
-            cursor.execute('SELECT adminmail FROM adminusers')
+         if form.validate_on_submit():
+            adminUsername = request.form.get("adminUsername")
+            adminPassword = request.form.get("adminPassword")
             
-         except Exception as e:
-            flash("Database Error: " + str(e))
-            return redirect(request.referrer)
-         else:
-            adminfound = cursor.fetchall()
-            if adminfound is not None and adminfound != tuple(''):
-               print(type(adminfound))
-               cursor.execute('SELECT adminmail FROM adminusers WHERE username = %s AND password IS NOT NULL AND password = %s', (adminUsername, adminPassword,))
-               adminlogged = cursor.fetchone()
-               if adminlogged:
-                  adminMail = adminlogged[0]
-                  session['admin'] = adminMail
-                  cursor.close()
-                  print(f"Admin session started as: {adminMail}")
-               else:
-                  flash("Incorrect Username/Password")
+            try:
+               cursor = mysql.connection.cursor()
+               #create missing tables
+               cursor.execute('SELECT adminmail FROM adminusers')
                
-               return redirect(url_for('admin'))
+            except Exception as e:
+               flash("Database Error: " + str(e))
+               return redirect(request.referrer)
             else:
-               flash("No admin accounts exists")
-               return render_template('adminlogin.html',noacc=True)
+               adminfound = cursor.fetchall()
+               if adminfound is not None and adminfound != tuple(''):
+                  print(type(adminfound))
+                  cursor.execute('SELECT adminmail FROM adminusers WHERE username = %s AND password IS NOT NULL AND password = %s', (adminUsername, adminPassword,))
+                  adminlogged = cursor.fetchone()
+                  if adminlogged:
+                     adminMail = adminlogged[0]
+                     session['admin'] = adminMail
+                     cursor.close()
+                     print(f"Admin session started as: {adminMail}")
+                  else:
+                     flash("Incorrect Username/Password")
+                  
+                  return redirect(url_for('admin'))
+               else:
+                  flash("No admin accounts exists")
+                  return render_template('adminlogin.html',noacc=True,form=form,form1=form1)
+         else:
+            for x in form.errors:
+               if (x == "adminUsername"):
+                  flash("Enter valid username")
+               elif (x == "adminPassword"):
+                  flash("Enter valid password")
+               else:
+                  flash("FORM VALIDATION ERROR!")
+            
+            return redirect(request.referrer)
       else:
-         return render_template('adminlogin.html')
+         return render_template('adminlogin.html',form=form,form1=form1)
    else:
       return redirect(url_for('admin'))
 
 @app.route('/adminauth',methods=['POST','GET'])
 def adminauth():
    if request.method == 'POST':
-      adminUsername = request.form['setUsername']
-      adminEmail = request.form['setEmail']
-      adminPassword = request.form['setPassword']
+      form1 = AdminRegistForm()
+      
+      if form1.validate_on_submit():
+         adminUsername = request.form.get("setUsername")
+         adminEmail = request.form.get("setEmail")
+         adminPassword = request.form.get("setPassword")
 
-      try:
-         cursor = mysql.connection.cursor()
-         sql = "INSERT INTO adminusers(username,adminmail,password,verified,owner) VALUES(%s,%s,%s,%s,%s)"
-         value = (adminUsername,adminEmail,adminPassword,0,1)
-         cursor.execute(sql,value)
-         mysql.connection.commit()
-         cursor.close()
-         flash("Admin account created successfully!")
+         try:
+            cursor = mysql.connection.cursor()
+            sql = "INSERT INTO adminusers(username,adminmail,password,verified,owner) VALUES(%s,%s,%s,%s,%s)"
+            value = (adminUsername,adminEmail,adminPassword,0,1)
+            cursor.execute(sql,value)
+            mysql.connection.commit()
+            cursor.close()
+            flash("Admin account created successfully!")
 
-      except Exception as e:
-         return render_template('error.html',e=e)
+         except Exception as e:
+            return render_template('error.html',e=e)
 
+         else:
+            return redirect(url_for('admin'))
+      
       else:
-         return redirect(url_for('admin'))
+         for x in form1.errors:
+            if(x == "setUsername"):
+               flash("Enter valid username!")
+            
+            elif(x == "setEmail"):
+               flash("Enter valid email!")
+            
+            elif(x == "setPassword"):
+               flash("Enter valid password!")
+            
+            else:
+               flash("FORM VALIDATION ERROR")
+         return redirect(request.referrer)
    else:
       return redirect(url_for('admin'))
 
 @app.route('/admin/verify',methods=['POST','GET'])
 def verifyadmin():
    if 'admin' in session:
+      form = AdminOTPForm()
       adminMail = session.get('admin')
       global otp
       if request.method == 'POST':
-         formotp = request.form['formotp']
-         try:
-            int(formotp)
-         except:
-               flash("Enter Integer Value")
-               return redirect(url_for('verifyadmin'))
-         else:
-            if int(formotp) == otp:
-               
-               try:
-                  cursor = mysql.connection.cursor()
-                  cursor.execute('UPDATE adminusers SET verified = True WHERE adminmail = %s',(adminMail,))
-                  cursor.fetchone()
-               except Exception as e:
-                  flash(str(e))
-                  return redirect(request.referrer)
-               else:
-                  mysql.connection.commit()
-                  cursor.close()
-                  flash("Your account is now verified!")
-            
-                  return redirect(url_for('admin'))
+         if form.validate_on_submit():
+            formotp = request.form.get("formotp")
+            try:
+               formotp = int(formotp)
+               print(f"formotp : {type(formotp)} -> {formotp} :::: otp : {type(otp)} -> {otp}")
+            except:
+                  flash("Enter Integer Value")
+                  return redirect(url_for('verifyadmin'))
             else:
-               flash(f"OTP IS INVALID!, Please check your inbox for new OTP")
-               return redirect(request.referrer)
+               if int(formotp) == otp:
+                  
+                  try:
+                     cursor = mysql.connection.cursor()
+                     cursor.execute('UPDATE adminusers SET verified = True WHERE adminmail = %s',(adminMail,))
+                     cursor.fetchone()
+                  except Exception as e:
+                     flash(str(e))
+                     return redirect(request.referrer)
+                  else:
+                     mysql.connection.commit()
+                     cursor.close()
+                     flash("Your account is now verified!")
+               
+                     return redirect(url_for('admin'))
+               else:
+                  flash(f"OTP IS INVALID!, Please check your inbox for new OTP")
+                  return redirect(request.referrer)
+               
+         else:
+            for x in form.errors:
+               if (x == "formotp"):
+                  flash("Enter a valid OTP!")
+
+               else:
+                  flash("FORM VALIDATION ERROR")
+
+            return redirect(request.referrer)  
 
       else:
       
@@ -526,7 +579,7 @@ def verifyadmin():
 
          else:
             if isVerifiedFormatted == str(0):
-               otp = random.randint(100000, 999999)
+               otp = generate_otp()
                print('otp is', otp)
 
                try:
@@ -540,7 +593,7 @@ def verifyadmin():
                   return redirect(url_for('admin'))
                else:
                   flash(f"OTP has been sent to the following email: {adminMail}")
-                  return render_template('adminotp.html')  
+                  return render_template('adminotp.html',form=form)  
             else:
                flash("Your account is already verified!")
                return redirect(url_for('admin'))
@@ -559,91 +612,120 @@ def adminout():
 
 @app.route('/admin/forget-pass',methods=['GET','POST'])
 def forgetpass():
-
+   form = AdminForgetPassForm()
+   form1 = AdminForgetPassOTPForm()
    if request.method == 'POST':   
-      adminforgetMail = request.form['adminforgetMail']      
-      
-      try:
-         cursor = mysql.connection.cursor()
-         cursor.execute('SELECT * FROM adminusers where adminmail = %s',(adminforgetMail,))
-         adminAccExists = cursor.fetchone()
-         print(f'**********AdminAccExists: {adminAccExists}**********')
-
-      except Exception as e:
-         flash(str(e))
-         return redirect(request.referrer)
-
-      else:
-         if adminAccExists is not None:
-            
-            try:
-               session['forgetmail'] = adminforgetMail
-               global otp
-               otp = random.randint(100000, 999999)
-               body = f'Your Otp: {otp}'
-               subject = 'Vintage Cafe OTP | Forget Password'
-               threading.Thread(target=lambda: sendemail(adminforgetMail, body, subject)).start()
-
-            except Exception as e:
-               flash(str(e))
-               return redirect(url_for('admin'))
-         
-            else:
-               flash(f"Otp to reset password has been sent to the following email: {adminforgetMail}")
-            return render_template('adminforgetotp.html')  
-         
-         else:
-            flash("Admin account does not exists.")
-            return redirect(url_for('forgetpass'))
-
-   else:
-      flash("We will send you OTP on your email for verification")
-      return render_template('adminforget.html')
-   
-
-@app.route('/admin/set-new-pass',methods=['POST','GET'])
-def setnewpass():
-   if request.method == 'POST':
-      newpass = request.form.get("newPass")
-      newConfPass = request.form.get("newConfPass")
-      
-      if str(newpass) == str(newConfPass):  
-         sessionForgetMail = session.get('forgetmail')
-         print(f'sessionforgetmail is {sessionForgetMail} *********************************')
+      if form.validate_on_submit():
+         adminforgetMail = request.form.get("adminforgetMail")    
          
          try:
             cursor = mysql.connection.cursor()
-            sql = 'UPDATE adminusers SET password = %s  Where adminmail = %s'
-            cursor.execute(sql, (newpass, sessionForgetMail))
-            mysql.connection.commit()
-         
+            cursor.execute('SELECT * FROM adminusers where adminmail = %s',(adminforgetMail,))
+            adminAccExists = cursor.fetchone()
+            print(f'**********AdminAccExists: {adminAccExists}**********')
+
          except Exception as e:
             flash(str(e))
             return redirect(request.referrer)
 
          else:
-            cursor.execute('SELECT username FROM adminusers where adminmail = %s',(sessionForgetMail,))
-            username = cursor.fetchone()
-            usernamefmt = username[0]
-            
-            body = f'''Admin Password has been successfully updated
-            
-            Admin Credentials:
-            
-            username: {usernamefmt}
-            password: Your Password
-            '''
-            subject = 'Vintage Cafe | Admin Password Updated'
-            threading.Thread(target=lambda: sendemail(sessionForgetMail, body, subject)).start()
-            session.pop('forgetmail',None)
-            session.pop('admin',None)
+            if adminAccExists is not None:
+               
+               try:
+                  session['forgetmail'] = adminforgetMail
+                  global otp
+                  otp = generate_otp()
+                  body = f'Your Otp: {otp}'
+                  subject = 'Vintage Cafe OTP | Forget Password'
+                  threading.Thread(target=lambda: sendemail(adminforgetMail, body, subject)).start()
+                  print(otp)
 
-            flash("Admin Password updated Successfully!")
-
-            return redirect(url_for('admin'))
-
+               except Exception as e:
+                  flash(str(e))
+                  return redirect(url_for('admin'))
+            
+               else:
+                  flash(f"Otp to reset password has been sent to the following email: {adminforgetMail}")
+                  return render_template('adminforgetotp.html',form1=form1)  
+            
+            else:
+               flash("Admin account does not exists.")
+               return redirect(url_for('forgetpass'))
       else:
-         flash("Password doesn't match with confirm password field !")
+         for x in form.errors:
+            if( x == "adminforgetMail"):
+               flash("Enter valid email!")
+            else:
+               flash("FORM VALIDATION ERROR")
+
+            return redirect(request.referrer)
+   else:
+      flash("We will send you OTP on your email for verification")
+      return render_template('adminforget.html',form=form)
+   
+
+@app.route('/admin/set-new-pass',methods=['POST','GET'])
+def setnewpass():
+
+   if request.method == 'POST':
+
+      # use form2 cuz its used in the adminroute - adminsetnewpass.html
+      form2 = AdminSetNewPassForm()
+
+      if form2.validate_on_submit():
+         newpass = request.form.get("newPass")
+         newConfPass = request.form.get("newConfPass")
+         
+         if str(newpass) == str(newConfPass):  
+            sessionForgetMail = session.get('forgetmail')
+            print(f'sessionforgetmail is {sessionForgetMail} *********************************')
+            
+            try:
+               cursor = mysql.connection.cursor()
+               sql = 'UPDATE adminusers SET password = %s  Where adminmail = %s'
+               cursor.execute(sql, (newpass, sessionForgetMail))
+               mysql.connection.commit()
+            
+            except Exception as e:
+               flash(str(e))
+               return redirect(request.referrer)
+
+            else:
+               cursor.execute('SELECT username FROM adminusers where adminmail = %s',(sessionForgetMail,))
+               username = cursor.fetchone()
+               usernamefmt = username[0]
+               
+               body = f'''Admin Password has been successfully updated
+               
+               Admin Credentials:
+               
+               username: {usernamefmt}
+               password: Your Password
+               '''
+               subject = 'Vintage Cafe | Admin Password Updated'
+               threading.Thread(target=lambda: sendemail(sessionForgetMail, body, subject)).start()
+               session.pop('forgetmail',None)
+               session.pop('admin',None)
+
+               flash("Admin Password updated Successfully!")
+
+               return redirect(url_for('admin'))
+
+         else:
+            flash("Password doesn't match with confirm password field !")
+            return redirect(url_for('forgetpass'))
+      
+      else:
+         for x in form2.errors:
+            if ( x == "newPass"):
+               flash("Enter valid password!")
+            
+            elif (x == "newConfPass"):
+               flash("password and confirm password fields should match!")
+            
+            else:
+               flash("FORM VALIDATION ERROR")
+
          return redirect(url_for('forgetpass'))
    
    else:
@@ -1045,24 +1127,40 @@ def admin():
             
    else:
       if request.method == 'POST':
-         if request.form.get('form_type') == 'admin_forgetOTP':
-            formotp = request.form.get('formotp')
-            global otp
-            try:
-               int(formotp)
+         # use form1 (since its used in the adminforget.html)
+         form1 = AdminForgetPassOTPForm()
+         form2 = AdminSetNewPassForm()
+         # use form1 (since its used in the adminforget.html)
 
-            except:
-               flash("Enter Valid Integer")
-               return redirect(url_for('admin'))
+         if request.form.get('form_type_forgetotp') == 'admin_forgetOTP':
+            if form1.validate_on_submit():
+            
+               formotp = request.form.get('formotp')
+               global otp
+               try:
+                  formotp = int(formotp)
 
-            else:
-               if otp == int(formotp):
-                  print("OTP VERIFIED SUCCESSFULLY!!!")
-                  return render_template('adminsetnewpass.html')
-               
+               except:
+                  flash("Enter Valid Integer")
+                  return redirect(url_for('admin'))
+
                else:
-                  flash("Invalid OTP")
-                  return redirect(url_for('forgetpass'))
+                  if otp == int(formotp):
+                     print("OTP VERIFIED SUCCESSFULLY!!!")
+                     return render_template('adminsetnewpass.html',form2=form2)
+                  
+                  else:
+                     flash("Invalid OTP")
+                     return redirect(url_for('forgetpass'))
+            else:
+               for x in form1.errors:
+                  if (x == "formotp"):
+                     flash("Enter valid otp!")
+                  
+                  else:
+                     flash("FORM VALIDATION ERROR !")
+                  
+               return redirect(request.referrer)
          else:
             flash("AN ERROR OCCURRED! --> Try clearing cookies!")
             return redirect(request.referrer)
