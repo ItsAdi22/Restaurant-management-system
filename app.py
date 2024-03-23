@@ -1,7 +1,7 @@
 from flask import Flask, render_template, url_for, redirect, request, session, flash
 from flask_mysqldb import MySQL
 from flask_mail import Mail,Message
-from forms import SignupForm, LoginForm, MenuForm, PaymentForm, AddFoodForm, DeleteFoodForm, StripeKeysForm, MarketingForm, CompleteOrderForm, DeleteOrderForm, LoginAsUserForm, DeleteUserAccForm, AddAdminAccForm
+from forms import SignupForm, LoginForm, MenuForm, PaymentForm, AddFoodForm, DeleteFoodForm, StripeKeysForm, MarketingForm, CompleteOrderForm, DeleteOrderForm, LoginAsUserForm, DeleteUserAccForm, AddAdminAccForm, DelAdminAccForm
 import re
 import stripe
 import datetime
@@ -724,6 +724,7 @@ def admin():
                form6 = LoginAsUserForm()
                form7 = DeleteUserAccForm()
                form8 = AddAdminAccForm()
+               form9 = DelAdminAccForm()
                
                if request.form.get('form_type') == 'payment_gateway':
                   paymentactive = True
@@ -799,7 +800,7 @@ def admin():
                   cursor.execute('SELECT username,adminmail,verified,owner from adminusers')
                   adminusers = cursor.fetchall()
                   cursor.close()
-                  return render_template('adminmanageaccounts.html',title='Manage Accounts',adminManageAccounts=adminManageAccounts,registeredUsers=registeredUsers,adminusers=adminusers,form6=form6,form7=form7,form8=form8)
+                  return render_template('adminmanageaccounts.html',title='Manage Accounts',adminManageAccounts=adminManageAccounts,registeredUsers=registeredUsers,adminusers=adminusers,form6=form6,form7=form7,form8=form8,form9=form9)
                
                elif request.form.get('form_type_loginuser') == 'admin_loginas':
                   if form6.validate_on_submit():
@@ -833,7 +834,7 @@ def admin():
                      cursor.execute('SELECT username,adminmail,verified,owner from adminusers')
                      adminusers = cursor.fetchall()
                      cursor.close()
-                     return render_template('adminmanageaccounts.html',title='Manage Accounts',adminManageAccounts=adminManageAccounts,registeredUsers=registeredUsers,adminusers=adminusers,form6=form6,form7=form7,form8=form8)
+                     return render_template('adminmanageaccounts.html',title='Manage Accounts',adminManageAccounts=adminManageAccounts,registeredUsers=registeredUsers,adminusers=adminusers,form6=form6,form7=form7,form8=form8,form9=form9)
 
                   else:
                      flash("FORM VALIDATION ERROR")
@@ -866,7 +867,7 @@ def admin():
                      cursor.execute('SELECT username,adminmail,verified,owner from adminusers')
                      adminusers = cursor.fetchall()
                      cursor.close()
-                     return render_template('adminmanageaccounts.html',title='Manage Accounts',adminManageAccounts=adminManageAccounts,registeredUsers=registeredUsers,adminusers=adminusers,form6=form6,form7=form7,form8=form8)
+                     return render_template('adminmanageaccounts.html',title='Manage Accounts',adminManageAccounts=adminManageAccounts,registeredUsers=registeredUsers,adminusers=adminusers,form6=form6,form7=form7,form8=form8,form9=form9)
                   
                   else:
                      for x in form8.errors:
@@ -881,27 +882,48 @@ def admin():
 
                      return redirect(request.referrer)
                   
-               elif request.form.get('form_type') == 'admin_delAddacc':
-                  adminManageAccounts = True
-                  delAddMail = request.form.get('delAddMail')
-                  
-                  cursor.execute("DELETE FROM adminusers WHERE adminmail = %s",(delAddMail,))
-                  mysql.connection.commit()
-                  flash(f"Admin User {delAddMail} Deleted!")
-                  
-                  cursor.execute("SELECT name,email from login")
-                  registeredUsers = cursor.fetchall()
+               elif request.form.get('form_type_deladmin') == 'admin_delAddacc':
+                  if form9.validate_on_submit():
+                     adminManageAccounts = True
+                     delAddMail = request.form.get('delAddMail')
+                     
 
-                  cursor.execute('SELECT username,adminmail,verified,owner from adminusers')
-                  adminusers = cursor.fetchall()
-                  cursor.close()
-                  
-                  if delAddMail == adminMail:
-                     session.pop('admin',None)
-                     return redirect(url_for('index'))
+                     cursor.execute("SELECT adminmail FROM adminusers WHERE adminmail = %s",(delAddMail,))
+                     adminaccfound = cursor.fetchone()
+
+                     if adminaccfound is not None:
+                        cursor.execute("DELETE FROM adminusers WHERE adminmail = %s",(delAddMail,))
+                        mysql.connection.commit()
+                        flash(f"Admin User {delAddMail} Deleted!")
+                        
+                        cursor.execute("SELECT name,email from login")
+                        registeredUsers = cursor.fetchall()
+
+                        cursor.execute('SELECT username,adminmail,verified,owner from adminusers')
+                        adminusers = cursor.fetchall()
+                        cursor.close()
+                        
+                        if delAddMail == adminMail:
+                           session.pop('admin',None)
+                           return redirect(url_for('index'))
+                        else:
+                           return render_template('adminmanageaccounts.html',title='Manage Accounts',adminManageAccounts=adminManageAccounts,registeredUsers=registeredUsers,adminusers=adminusers,form6=form6,form7=form7,form8=form8,form9=form9)
+
+                     else:
+                        flash(f"{delAddMail} is not an admin account!")
+                        return redirect(request.referrer)
+
                   else:
-                     return render_template('adminmanageaccounts.html',title='Manage Accounts',adminManageAccounts=adminManageAccounts,registeredUsers=registeredUsers,adminusers=adminusers)
-                  
+                     for x in form9.errors:
+                        if (x == "delAddMail"):
+                           flash("Please enter a valid email!")
+                        
+                        else:
+                           flash("FORM VALIDATION ERROR")
+
+                     return redirect(request.referrer)
+
+
                elif request.form.get('form_type') == 'admin_manageOrders':
                   adminManageOrders = True
 
