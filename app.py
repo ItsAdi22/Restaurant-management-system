@@ -159,10 +159,6 @@ def beverages():
          
          return render_template('beverages.html', value=value, form=form)
 
-
-
-
-
 @app.route('/breakfast',methods=['GET','POST'])
 def breakfast():
    form = MenuForm()
