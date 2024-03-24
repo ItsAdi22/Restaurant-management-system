@@ -1,27 +1,27 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, HiddenField, TextAreaField, SelectField, EmailField, IntegerField
-from wtforms.validators import DataRequired, Email, Length, InputRequired, EqualTo, NumberRange, URL
+from wtforms.validators import Email, Length, InputRequired, EqualTo, NumberRange, URL
 
 class SignupForm(FlaskForm):
-    name = StringField('Username', validators=[DataRequired(), Length(min=4, max=20)])
-    email = EmailField('Email', validators=[DataRequired(), Email()])
-    password = PasswordField('Password', validators=[DataRequired(), Length(min=6)])
+    name = StringField('Username', validators=[InputRequired(), Length(min=4, max=20)])
+    email = EmailField('Email', validators=[InputRequired(), Email()])
+    password = PasswordField('Password', validators=[InputRequired(), Length(min=6)])
     confpass = PasswordField('Confirm Password', validators=[InputRequired(), EqualTo('password', message='Passwords must match')])
     submit = SubmitField('Sign Up')
 
 class LoginForm(FlaskForm):
-    email = EmailField('Email', validators=[DataRequired(), Email()])
+    email = EmailField('Email', validators=[InputRequired(), Email()])
     password = PasswordField('Password', validators=[InputRequired()])
     submit = SubmitField('Login')
 
 class MenuForm(FlaskForm):
-    item = HiddenField('Item')
+    item = HiddenField('Item',validators=[InputRequired()])
     submit = SubmitField('Add to cart')
 
 class PaymentForm(FlaskForm):
-    orderingType = SelectField('Ordering Type', choices=[('On premise', 'On premise'), ('Takeaway', 'Takeaway'), ('Delivery', 'Delivery')], validators=[DataRequired()])
-    payVia = SelectField('Pay Via', choices=[('Credit/Debit Card', 'Credit/Debit Card')], validators=[DataRequired()])
-    table_no = IntegerField('Table No', validators=[DataRequired()])
+    orderingType = SelectField('Ordering Type', choices=[('On premise', 'On premise'), ('Takeaway', 'Takeaway'), ('Delivery', 'Delivery')], validators=[InputRequired()])
+    payVia = SelectField('Pay Via', choices=[('Credit/Debit Card', 'Credit/Debit Card')], validators=[InputRequired()])
+    table_no = IntegerField('Table No', validators=[InputRequired()])
     message = TextAreaField('Message', render_kw={'rows': 3}, description='Leave empty if you don\'t want to send any custom message')
     submit = SubmitField('Submit')
 
@@ -31,7 +31,7 @@ class AddFoodForm(FlaskForm):
     foodtitle = StringField('Title', validators=[InputRequired()])
     fooddescription = StringField('Description', validators=[InputRequired()])
     foodurlimage = StringField('Image URL', validators=[InputRequired(), URL()])
-    foodprice = IntegerField('Price', validators=[InputRequired(), NumberRange(min=0)])
+    foodprice = IntegerField('Price', validators=[InputRequired(), NumberRange(min=10)])
     method = SelectField('Category', choices=[('/beverages', 'Beverages'), ('/breakfast', 'Breakfast'), ('/lunch', 'Lunch / Dinner')], validators=[InputRequired()])
     submit = SubmitField('Submit')
 

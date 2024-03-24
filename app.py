@@ -1176,74 +1176,88 @@ def page_not_found(e):
 
 @app.route('/login',methods=['GET', 'POST'])
 def login():
-    form = LoginForm()
+   form = LoginForm()
    
-    if 'name' in session:
-      return render_template('index.html') 
+   if 'name' in session:
+      return redirect(url_for("home")) 
     
-    elif form.is_submitted() == True:
-        email = request.form.get('email')
-        password = request.form.get('password')
-        
-        try:
-            cursor = mysql.connection.cursor()
-        
-        except:
-            flash("Couldn't connect to the database")
-            return render_template('login.html',title = 'Database Error',form=form)  
-        
-        else:    
-            try: 
-               cursor.execute('SELECT * FROM login WHERE email = %s AND password IS NOT NULL AND password = %s', (email, password,))
-               account = cursor.fetchone()
-               if account:
-                     session['email'] = email
-                     cursor.execute('SELECT name FROM login WHERE email = %s AND password = %s', (email, password,))
-                     username = cursor.fetchone()
-                     if username:
-                        username_formatted = username[-1]
-                        
-                        session['name'] = username_formatted
-                        
-                        #email part
-                        ip_address = request.remote_addr
-                        now = datetime.datetime.now()
-                        current_date = now.strftime("%Y-%m-%d")
-                        current_time = now.strftime("%H:%M:%S")
-                        name = session.get("name")
-                        body = f'''Hello {name},
-                              We wanted to inform you that a new login was detected on your account.
-
-                              Details of the login are as follows:
-                              - Date: {current_date}
-                              - Time: {current_time}
-                              - IP Address: {ip_address}
-
-                              If this was not you, please contact us immediately and change your password.
-                              '''
-                        try:
-                           subject = 'New Login Detected!'
-                           threading.Thread(target=lambda: sendemail(email, body, subject)).start()
-                           #sendemail(email,body,subject)
-
-                        except Exception as e:
-                           return render_template('error.html',e=e)     
-
-                        else:
-                           flash("You have logged in!")
-                           return redirect(url_for('index'))  
-                        
-               else:
-                  flash("Incorrect Email/Password")
-                  return render_template('login.html',form=form) 
-                        
+   else:
+      if request.method == 'POST':
+         if form.validate_on_submit():
+            email = request.form.get('email')
+            password = request.form.get('password')
+         
+            try:
+                  cursor = mysql.connection.cursor()
+            
             except:
-                flash("No accounts exist, please create a new account")
-                return render_template('register.html') 
- 
+                  flash("Couldn't connect to the database")
+                  return render_template('login.html',title = 'Database Error',form=form)  
+            
+            else:    
+                  try: 
+                     cursor.execute('SELECT * FROM login WHERE email = %s AND password IS NOT NULL AND password = %s', (email, password,))
+                     account = cursor.fetchone()
+                     if account:
+                           session['email'] = email
+                           cursor.execute('SELECT name FROM login WHERE email = %s AND password = %s', (email, password,))
+                           username = cursor.fetchone()
+                           if username:
+                              username_formatted = username[-1]
+                              
+                              session['name'] = username_formatted
+                              
+                              #email part
+                              ip_address = request.remote_addr
+                              now = datetime.datetime.now()
+                              current_date = now.strftime("%Y-%m-%d")
+                              current_time = now.strftime("%H:%M:%S")
+                              name = session.get("name")
+                              body = f'''Hello {name},
+                                    We wanted to inform you that a new login was detected on your account.
 
-    else:
-      return render_template('login.html',title = 'login',form=form)
+                                    Details of the login are as follows:
+                                    - Date: {current_date}
+                                    - Time: {current_time}
+                                    - IP Address: {ip_address}
+
+                                    If this was not you, please contact us immediately and change your password.
+                                    '''
+                              try:
+                                 subject = 'New Login Detected!'
+                                 threading.Thread(target=lambda: sendemail(email, body, subject)).start()
+                                 #sendemail(email,body,subject)
+
+                              except Exception as e:
+                                 return render_template('error.html',e=e)     
+
+                              else:
+                                 flash("You have logged in!")
+                                 return redirect(url_for('index'))  
+                              
+                     else:
+                        flash("Incorrect Email/Password")
+                        return render_template('login.html',form=form) 
+                              
+                  except:
+                     flash("No accounts exist, please create a new account")
+                     form = SignupForm()
+                     return render_template('register.html',form=form) 
+         else:
+            for x in form.errors:
+               if (x == "email"):
+                  flash("Enter a valid email!")
+                  print("Enter a valid email!")
+               
+               elif (x == "password"):
+                  flash("Enter a valid password!")
+
+               else:
+                  flash("FORM VALIDATION ERROR")
+            return redirect(request.referrer)
+
+      else:
+         return render_template('login.html',title = 'login',form=form)
 
 @app.route('/register',methods = ['POST','GET'])
 @app.route('/signup',methods = ['POST','GET'])
