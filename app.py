@@ -1264,7 +1264,7 @@ def login():
 def register():
    form = SignupForm()
    if request.method == 'POST':
-      if form.validate_on_submit() == True:
+      if form.validate_on_submit():
          name = request.form.get('name') 
          email = request.form.get('email') 
          password = request.form.get('password')
@@ -1296,10 +1296,18 @@ def register():
                   return redirect(url_for('login'))     
       else:
          for x in form.errors:
-            if 'confpass' in x:
+            if ('confpass' in x):
                flash("password and confirm password fields should match!")
-            else:
-               flash(f"Enter a valid {x}")
+            
+            elif (x == "name"):
+               flash("Enter a valid name!")
+            
+            elif (x == "email"):
+               flash("Enter a valid email!")
+
+            elif (x == "password"):
+               flash("Enter a valid password!")
+            
             return redirect(url_for('register'))
 
    else:
