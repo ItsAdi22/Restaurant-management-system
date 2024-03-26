@@ -1,12 +1,14 @@
 from flask import Flask, render_template, url_for, redirect, request, session, flash
 from flask_mysqldb import MySQL
-from flask_mail import Mail,Message
 from forms import SignupForm, LoginForm, MenuForm, PaymentForm, AddFoodForm, DeleteFoodForm, StripeKeysForm, MarketingForm, CompleteOrderForm, DeleteOrderForm, LoginAsUserForm, DeleteUserAccForm, AddAdminAccForm, DelAdminAccForm, AdminLoginForm, AdminRegistForm, AdminOTPForm, AdminForgetPassForm, AdminForgetPassOTPForm, AdminSetNewPassForm
 import stripe
 import datetime
 import threading
 import secrets
 import os
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -36,11 +38,11 @@ app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
 
 app.config['DEBUG'] = False
 
+siteName = os.getenv("STORE_NAME")
 domain = os.getenv('domain')
 port = os.getenv('port')
 
 mysql = MySQL(app)
-mail = Mail(app)
 
 def createMissingTables():            
    try:
@@ -58,26 +60,52 @@ def createMissingTables():
    except Exception as e:
       flash(f"Error creating tables: {e}")
 
-# def sendemail(email,body,subject):
-#    with app.app_context():
-#       msg = Message(subject, recipients=[email], body=body)
-#       mail.send(msg)
-#       if mail.send(msg):
-#          print(f'{subject} | Email Sent')
-#       else:
-#          flash('AN ERROR OCCURRED')
 
-def sendemail(email, body, subject):
-    with app.app_context():
-        msg = Message(subject, recipients=[email], body=body)
-        try:
-            mail.connect()
-            mail.send(msg)
-            print(f'{subject} | Email Sent')
+# def sendemail(email, body, subject):
+#     with app.app_context():
+#         msg = Message(subject, recipients=[email], body=body)
+#         try:
+#             mail.connect()
+#             mail.send(msg)
+#             print(f'{subject} | Email Sent')
         
-        except Exception as e:
-            with app.test_request_context():
-               print(f'An error occurred while sending email to {email}. Error message: {str(e)}')
+#         except Exception as e:
+#             with app.test_request_context():
+#                print(f'An error occurred while sending email to {email}. Error message: {str(e)}')
+
+
+def sendemail(receiver_email, body, subject):
+    try:
+        # Email Credentials
+        sender_email = app.config['MAIL_USERNAME']  # Replace with your email
+        sender_password = app.config['MAIL_PASSWORD']  # Replace with your password
+
+        # SMTP Server Details
+        smtp_server = app.config['MAIL_SERVER']
+        smtp_port = app.config['MAIL_PORT']  # Port for TLS/STARTTLS
+
+        # Create message container - the correct MIME type is multipart/alternative.
+        msg = MIMEMultipart()
+        msg['From'] = app.config['MAIL_DEFAULT_SENDER']
+        msg['To'] = receiver_email
+        msg['Subject'] = subject
+
+        # Attach body to the email
+        msg.attach(MIMEText(body, 'plain'))
+
+        # Create SMTP session
+        with smtplib.SMTP(smtp_server, smtp_port) as server:
+            # Start TLS for security
+            server.starttls()
+            # Login with sender email and password
+            server.login(sender_email, sender_password)
+            # Send email
+            server.sendmail(sender_email, receiver_email, msg.as_string())
+            print(f'{subject} | Email Sent')
+    
+    except Exception as e:
+        print(f'An error occurred while sending email to {receiver_email}. Error message: {str(e)}')
+               
 
 def generate_otp(length=6):
     try:
@@ -1218,6 +1246,7 @@ def login():
                                     - IP Address: {ip_address}
 
                                     If this was not you, please contact us immediately and change your password.
+                                    http://{domain}:{port}
                                     '''
                               try:
                                  subject = 'New Login Detected!'
@@ -1288,8 +1317,36 @@ def register():
                   cursor.execute(sql,value)
                   mysql.connection.commit()
                   cursor.close()
-                  flash("User Registration Successful !")
-                  return redirect(url_for('login'))     
+                  
+                  #email part
+                  ip_address = request.remote_addr
+                  now = datetime.datetime.now()
+                  current_date = now.strftime("%Y-%m-%d")
+                  current_time = now.strftime("%H:%M:%S")
+                  name = session.get("name")
+                  body = f'''Hello {name},
+                        Your account at {siteName} has been created successfully!
+
+                        Details of the login are as follows:
+                        - Date: {current_date}
+                        - Time: {current_time}
+                        - IP Address: {ip_address}
+
+                        If this was not you, please contact us immediately and change your password.
+                        
+                        webstore link:
+                        http://{domain}:{port}
+                        '''
+                  try:
+                     subject = f'New Account Created | {siteName} '
+                     threading.Thread(target=lambda: sendemail(email, body, subject)).start()
+                  
+                  except Exception as e:
+                     flash(str(e))
+                  
+                  else:
+                     flash("User Registration Successful !")
+                     return redirect(url_for('login'))     
       else:
          for x in form.errors:
             if ('confpass' in x):
@@ -1575,6 +1632,8 @@ def success():
                
                Payment Id: {checkout_session_id}
                Thank You!
+
+               Site URL: {domain}:{port}
                '''
                
                try:
@@ -1662,4 +1721,8 @@ def test():
       return redirect(url_for('admin'))
 
 if __name__ == '__main__':
+   print(f"mail server => {app.config['MAIL_SERVER']}")
+   # print(f"mail port => {app.config['MAIL_PORT']}")
+   print(f"use tls => {app.config['MAIL_USE_TLS']}")
+   print(f"use ssl => {app.config['MAIL_USE_SSL']}")
    app.run(debug=True,host=domain, port=port)
