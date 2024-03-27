@@ -1721,8 +1721,4 @@ def test():
       return redirect(url_for('admin'))
 
 if __name__ == '__main__':
-   print(f"mail server => {app.config['MAIL_SERVER']}")
-   # print(f"mail port => {app.config['MAIL_PORT']}")
-   print(f"use tls => {app.config['MAIL_USE_TLS']}")
-   print(f"use ssl => {app.config['MAIL_USE_SSL']}")
    app.run(debug=True,host=domain, port=port)
