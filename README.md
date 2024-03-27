@@ -40,9 +40,17 @@ Issues:
 
 Images:
 
-![alt text](static/sample/home.png)
-![alt text](static/sample/menu.png)
-![alt text](static/sample/admin.png)
+## Home Page
+![Home Page](static/sample/home.png)
+## Menu Page
+![Menu Page](static/sample/menu.png)
+## Cart Page
+![Cart Page](static/sample/cart.png)
+## Admin Home Page
+![Admin Home Page](static/sample/admin.png)
+## Admin Manage Orders Page
+![Manage Orders Page](static/sample/orders.png)
+
 
 # ---------------------------------------------------------------
 
