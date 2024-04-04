@@ -1,0 +1,26 @@
+{% extends 'adminheader.html' %}
+
+{% block navml %}
+<form action="{{url_for('admin')}}" method="post"> 
+    <input type="hidden" name="form_type_ml" value="admin_navml">
+    <input type="submit" class="list-group-item list-group-item-action active" value="Predict Sales">
+</form>
+{% endblock navml %}
+
+{% block content %}
+<h1>Predict Future Sales</h1>
+<h4>Select a future date!</h4>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        <form action="#" method="POST">
+          <div class="form-group">
+            <label for="dateInput">Date:</label>
+            <input type="date" class="form-control" id="dateInput" name="dateInput" required>
+          </div>
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock content %}

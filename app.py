@@ -11,6 +11,10 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from dotenv import load_dotenv
 
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+
 load_dotenv()
 
 regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
@@ -1081,6 +1085,10 @@ def admin():
                   else:
                      flash("FORM VALIDATION ERROR")
                      return redirect(url_for('admin'))
+               
+               elif request.form.get('form_type_ml') == "admin_navml":
+                  mlnav= True
+                  return render_template("adminml.html",mlnav=mlnav)
                      
 
                else:
@@ -1110,6 +1118,8 @@ def admin():
                   
                   cursor.close()
                   homeactive = True
+
+                  
                   return render_template('admin.html', title = "Admin",totalSales=totalSales,sales=sales,homeactive=homeactive,pendingSales=pendingSales,totalOrders=totalOrders,todaySales=todaySales,allitems=allitems)
 
             else:
@@ -1144,6 +1154,43 @@ def admin():
                   
                   cursor.close()
                   homeactive = True
+
+                  #machine learning part begins here:
+                  df = pd.DataFrame(sales,columns=['Date','Amount'])
+                  
+                  # Convert date columns to pandas datetime format
+                  df['Date'] = pd.to_datetime(df['Date'])
+
+                  #convert date into day
+                  df['DayOfWeek'] = df['Date'].dt.dayofweek
+
+                  #convert date into month
+                  df['Month'] = df['Date'].dt.month
+
+                  # Write DataFrame to CSV file
+                  df.to_csv('data.csv', index=False)
+
+                  # Read CSV file into pandas DataFrame
+                  df_from_csv = pd.read_csv('data.csv')
+                  
+                  # Display DataFrame
+                  print(df_from_csv)
+
+                  X = df[['DayOfWeek', 'Month']]
+                  y = df['Amount']
+                  
+                  X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+                  # Train the linear regression model
+                  model = LinearRegression()
+                  model.fit(X, y)
+
+                  # Predict the day with the highest sales in the future
+                  future_date = pd.to_datetime('2024-04-05')  # Replace '2024-04-05' with the desired future date
+                  future_data = pd.DataFrame({'DayOfWeek': [future_date.dayofweek], 'Month': [future_date.month]})
+                  predicted_sales = model.predict(future_data)
+                  print('Predicted sales for future date:', predicted_sales)
+
                   return render_template('admin.html', title = "Admin",totalSales=totalSales,sales=sales,homeactive=homeactive,pendingSales=pendingSales,totalOrders=totalOrders,todaySales=todaySales,allitems=allitems)
                
                except Exception as e:

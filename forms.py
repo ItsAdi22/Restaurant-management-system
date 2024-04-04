@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, HiddenField, TextAreaField, SelectField, EmailField, IntegerField
+from wtforms import StringField, PasswordField, SubmitField, HiddenField, TextAreaField, SelectField, EmailField, IntegerField, DateField
 from wtforms.validators import Email, Length, InputRequired, EqualTo, NumberRange, URL
 
 class SignupForm(FlaskForm):
@@ -112,4 +112,8 @@ class AdminForgetPassOTPForm(FlaskForm):
 class AdminSetNewPassForm(FlaskForm):
     newPass = PasswordField('Set New Password', validators=[InputRequired()], render_kw={"placeholder": "Set New Password"})
     newConfPass = PasswordField('Confirm New Password', validators=[InputRequired(), EqualTo('newPass', message='Passwords must match')], render_kw={"placeholder": "Confirm New Password"})
+    submit = SubmitField('Submit')
+
+class AdminPredictSalesForm(FlaskForm):
+    dateInput = DateField('Date', validators=[InputRequired()], format='%Y-%m-%d')
     submit = SubmitField('Submit')

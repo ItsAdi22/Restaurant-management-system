@@ -115,6 +115,16 @@
             <input type="submit" class="list-group-item list-group-item-action" value="Marketing Mails">
         </form>
 	{% endif %}
+    
+	{% if mlnav %}
+        {% block navml %}
+        {% endblock navml %}
+    {% else %}
+        <form action="{{url_for('admin')}}" method="post"> 
+            <input type="hidden" name="form_type_ml" value="admin_navml">
+            <input type="submit" class="list-group-item list-group-item-action" value="Predict Sales">
+        </form>
+	{% endif %}
 
 	</nav>
     <!-- Navigation Bar End -->
@@ -144,6 +154,7 @@
 				
 		</div>
 		{% block content %} {% endblock content %}
+		{% block machinelearning %} {% endblock machinelearning %}
 	</div>
     
 	<!-- Bootstrap JavaScript -->
