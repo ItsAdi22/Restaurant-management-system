@@ -1147,9 +1147,7 @@ def admin():
                   else:
                      for x in form10.errors:
                         flash(f'Enter valid {x}')
-                        return redirect(url_for("adminml.html"))
-
-                     
+                        return render_template("adminml.html",form10=form10)
 
                else:
                   #today sales
