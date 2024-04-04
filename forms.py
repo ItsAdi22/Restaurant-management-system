@@ -115,5 +115,6 @@ class AdminSetNewPassForm(FlaskForm):
     submit = SubmitField('Submit')
 
 class AdminPredictSalesForm(FlaskForm):
+    form_type_ml = HiddenField(default="admin_ml",validators=[InputRequired()])
     dateInput = DateField('Date', validators=[InputRequired()], format='%Y-%m-%d')
     submit = SubmitField('Submit')

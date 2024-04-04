@@ -1,6 +1,6 @@
 from flask import Flask, render_template, url_for, redirect, request, session, flash
 from flask_mysqldb import MySQL
-from forms import SignupForm, LoginForm, MenuForm, PaymentForm, AddFoodForm, DeleteFoodForm, StripeKeysForm, MarketingForm, CompleteOrderForm, DeleteOrderForm, LoginAsUserForm, DeleteUserAccForm, AddAdminAccForm, DelAdminAccForm, AdminLoginForm, AdminRegistForm, AdminOTPForm, AdminForgetPassForm, AdminForgetPassOTPForm, AdminSetNewPassForm
+from forms import SignupForm, LoginForm, MenuForm, PaymentForm, AddFoodForm, DeleteFoodForm, StripeKeysForm, MarketingForm, CompleteOrderForm, DeleteOrderForm, LoginAsUserForm, DeleteUserAccForm, AddAdminAccForm, DelAdminAccForm, AdminLoginForm, AdminRegistForm, AdminOTPForm, AdminForgetPassForm, AdminForgetPassOTPForm, AdminSetNewPassForm, AdminPredictSalesForm
 import stripe
 import datetime
 import threading
@@ -12,6 +12,7 @@ from email.mime.multipart import MIMEMultipart
 from dotenv import load_dotenv
 
 import pandas as pd
+# import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 
@@ -835,7 +836,7 @@ def admin():
                form7 = DeleteUserAccForm()
                form8 = AddAdminAccForm()
                form9 = DelAdminAccForm()
-               
+               form10 = AdminPredictSalesForm()
                if request.form.get('form_type') == 'payment_gateway':
                   paymentactive = True
                   return render_template('adminpay.html', apikey=apikey,pubkey=pubkey,paymentactive=paymentactive,form2=form2)   
@@ -1088,7 +1089,66 @@ def admin():
                
                elif request.form.get('form_type_ml') == "admin_navml":
                   mlnav= True
-                  return render_template("adminml.html",mlnav=mlnav)
+                  return render_template("adminml.html",mlnav=mlnav,form10=form10)
+               
+               elif request.form.get('form_type_ml') == "admin_ml":
+                  mlnav= True
+                  if form10.validate_on_submit():
+                     try:
+                        cursor.execute('SELECT date, SUM(price) as total_price FROM orders GROUP BY date LIMIT 7;')
+                        sales = cursor.fetchall()
+
+
+                        PredictedDate = request.form.get("dateInput")
+                        df = pd.DataFrame(sales,columns=['Date','Amount'])
+                        
+                        # Convert date columns to pandas datetime format
+                        df['Date'] = pd.to_datetime(df['Date'])
+
+                        #convert date into day
+                        df['DayOfWeek'] = df['Date'].dt.dayofweek
+
+                        #convert date into month
+                        df['Month'] = df['Date'].dt.month
+
+                        # Write DataFrame to CSV file
+                        df.to_csv('data.csv', index=False)
+
+                     except Exception as e:
+                        flash(str(e))
+                        return render_template("error.html",e=e)
+                     
+                     else:
+                        # Read CSV file into pandas DataFrame
+                        df_from_csv = pd.read_csv('data.csv')
+                        
+                        # Display DataFrame
+                        print(df_from_csv)
+
+                        X = df[['DayOfWeek', 'Month']]
+                        y = df['Amount']
+                        
+                        #X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+                        # Train the linear regression model
+                        model = LinearRegression()
+                        model.fit(X, y)
+
+                        # Predict the day with the highest sales in the future
+                        future_date = pd.to_datetime(PredictedDate)  # Replace '2024-04-05' with the desired future date
+                        future_data = pd.DataFrame({'DayOfWeek': [future_date.dayofweek], 'Month': [future_date.month]})
+                        predicted_sales = model.predict(future_data)
+
+                        predicted_sales = round(predicted_sales[0],2)
+                        print('Predicted sales for future date:', predicted_sales)
+
+                        return render_template("adminml.html",mlnav=mlnav,predicted_sales=predicted_sales,PredictedDate=PredictedDate,form10=form10)
+
+                  else:
+                     for x in form10.errors:
+                        flash(f'Enter valid {x}')
+                        return redirect(url_for("adminml.html"))
+
                      
 
                else:
@@ -1155,41 +1215,6 @@ def admin():
                   cursor.close()
                   homeactive = True
 
-                  #machine learning part begins here:
-                  df = pd.DataFrame(sales,columns=['Date','Amount'])
-                  
-                  # Convert date columns to pandas datetime format
-                  df['Date'] = pd.to_datetime(df['Date'])
-
-                  #convert date into day
-                  df['DayOfWeek'] = df['Date'].dt.dayofweek
-
-                  #convert date into month
-                  df['Month'] = df['Date'].dt.month
-
-                  # Write DataFrame to CSV file
-                  df.to_csv('data.csv', index=False)
-
-                  # Read CSV file into pandas DataFrame
-                  df_from_csv = pd.read_csv('data.csv')
-                  
-                  # Display DataFrame
-                  print(df_from_csv)
-
-                  X = df[['DayOfWeek', 'Month']]
-                  y = df['Amount']
-                  
-                  X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-                  # Train the linear regression model
-                  model = LinearRegression()
-                  model.fit(X, y)
-
-                  # Predict the day with the highest sales in the future
-                  future_date = pd.to_datetime('2024-04-05')  # Replace '2024-04-05' with the desired future date
-                  future_data = pd.DataFrame({'DayOfWeek': [future_date.dayofweek], 'Month': [future_date.month]})
-                  predicted_sales = model.predict(future_data)
-                  print('Predicted sales for future date:', predicted_sales)
 
                   return render_template('admin.html', title = "Admin",totalSales=totalSales,sales=sales,homeactive=homeactive,pendingSales=pendingSales,totalOrders=totalOrders,todaySales=todaySales,allitems=allitems)
                
