@@ -1095,7 +1095,8 @@ def admin():
                   mlnav= True
                   if form10.validate_on_submit():
                      try:
-                        cursor.execute('SELECT date, SUM(price) as total_price FROM orders GROUP BY date LIMIT 7;')
+                        # cursor.execute('SELECT date, SUM(price) as total_price FROM orders GROUP BY date LIMIT 7;')
+                        cursor.execute('SELECT date, SUM(price) FROM orders GROUP BY date;')
                         sales = cursor.fetchall()
 
 
