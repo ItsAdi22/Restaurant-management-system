@@ -22,7 +22,7 @@ regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
 
 app = Flask(__name__)
 
-tableno = None
+# tableno = None
 additionalNote = None
 otp = None
 
@@ -42,6 +42,7 @@ app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
 app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
 
 app.config['DEBUG'] = False
+app.config['tablenum'] = 0
 
 siteName = os.getenv("STORE_NAME")
 domain = os.getenv('domain')
@@ -401,7 +402,9 @@ def cart():
          total_column = cursor.fetchone()
 
          cursor.close()
-         return render_template("cart.html",item=item,quantity=quantity,price=price,total=total,total_column=total_column,pubkey_formatted=pubkey_formatted,form=form)
+
+         tableno = app.config['tablenum']
+         return render_template("cart.html",item=item,quantity=quantity,price=price,total=total,total_column=total_column,pubkey_formatted=pubkey_formatted,form=form,tableno=tableno)
 
       except Exception as e:
          return render_template("error.html",e=e)
@@ -1274,7 +1277,7 @@ def login():
    form = LoginForm()
    
    if 'name' in session:
-      return redirect(url_for("home")) 
+      return redirect(url_for("index")) 
     
    else:
       if request.method == 'POST':
@@ -1542,9 +1545,10 @@ def create_checkout_session():
    try:
       
 
-      global tableno
+      # global tableno
       global additionalNote
       tableno = request.form['table_no']
+      app.config['tablenum'] = tableno
       additionalNote = request.form['message']
       cursor = mysql.connection.cursor()
       cursor.execute("SELECT apikey FROM stripekeys")
@@ -1674,7 +1678,7 @@ def success():
                current_date = now.strftime("%Y-%m-%d")
 
                global additionalNote
-               global tableno
+               tableno = app.config["tablenum"]
 
                sql = "INSERT INTO orders(item,price,name,email,stripeid,date,tableno,note,served) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)"
                value = (itemList_fmt,totalCartVal[0],name,email,checkout_session_id,current_date,tableno,additionalNote,0)
@@ -1771,6 +1775,19 @@ def emailauthentication():
    else:
       return redirect(url_for('index'))
 
+
+@app.route('/table/<table>')
+def tablenoselector(table):
+   table = int(table)
+   print(f'tableno: {table} -> type: {type(table)}')
+   if(type(table) == int):
+
+      app.config["tablenum"] = table
+      return redirect(url_for('index'))
+   
+   else:
+      flash("table no is not integer")
+      return redirect(url_for("index"))
 
 @app.route('/test')
 def test():
