@@ -10,7 +10,8 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from dotenv import load_dotenv
-
+import socket
+import qrcode
 import pandas as pd
 # import numpy as np
 from sklearn.model_selection import train_test_split
@@ -1783,6 +1784,15 @@ def tablenoselector(table):
    if(type(table) == int):
 
       app.config["tablenum"] = table
+      
+      #qr code
+      data = f"http://{socket.gethostbyname(socket.gethostname())}:{port}"
+      qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_L, box_size=10, border=4)
+      qr.add_data(data)
+      qr.make(fit=True)
+      filename = f"static/qrcodes/table-{table}.png"
+      img = qr.make_image(fill_color="black", back_color="white")
+      img.save(filename)
       return redirect(url_for('index'))
    
    else:
@@ -1803,10 +1813,12 @@ def test():
       cursor.execute('SELECT SUM(total) FROM cart WHERE email = %s',(email,))
       totalcartval = cursor.fetchone()
 
+      print(socket.gethostbyname(socket.gethostname()))
       return f'current-admin: {currentAdmin} <br> ---------- <br> stripe-api-key: {apikey} <br> ---------- <br>email: {email} <br> cart-value: {str(totalcartval[0])}'
    else:
       flash("ADMIN MUST BE LOGGED IN")
       return redirect(url_for('admin'))
 
 if __name__ == '__main__':
+   print(f"domain: {domain}")
    app.run(debug=True,host=domain, port=port)
