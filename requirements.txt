@@ -8,3 +8,5 @@ flask_wtf
 email_validator
 pandas
 scikit-learn
+socket
+qrcode
