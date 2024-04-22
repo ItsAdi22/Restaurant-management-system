@@ -284,8 +284,6 @@ CREATE TABLE `stripekeys` (
 -- Dumping data for table `stripekeys`
 --
 
-INSERT INTO `stripekeys` (`id`, `apikey`, `pubkey`) VALUES
-(2, 'sk_test_51MGzcCSBHZwYsuiZuns3hmb0ngQbqF8fLVN14r5R5KLBcJUtGLq4fGRKusfTY7NxLAczvmWBVLFH3BxSRdpaeuGy00hTzk8q0H', 'pk_test_51MGzcCSBHZwYsuiZ6t6KTVCwUvYaamvQ1RboGpDMcEJuoULGBlLH27y7kuMJsCV8sRS7vSvVX5eD8QFru8CLvNWf00obdBnNHI');
 
 --
 -- Indexes for dumped tables
