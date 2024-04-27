@@ -1777,9 +1777,10 @@ def emailauthentication():
       return redirect(url_for('index'))
 
 
-@app.route('/table/<table>')
+@app.route('/table/<int:table>')
 def tablenoselector(table):
-   table = int(table)
+
+   # table = int(table)
    print(f'tableno: {table} -> type: {type(table)}')
    if(type(table) == int):
 
@@ -1790,15 +1791,22 @@ def tablenoselector(table):
       qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_L, box_size=10, border=4)
       qr.add_data(data)
       qr.make(fit=True)
-      filename = f"static/qrcodes/table-{table}.png"
-      img = qr.make_image(fill_color="black", back_color="white")
-      img.save(filename)
+
+      try:
+         os.mkdir(f"static/qrcodes")
+      
+      except Exception as e:
+         print("qrcode directory already exists")
+      
+      finally:
+         filename = f"static/qrcodes/table-{table}.png"
+         img = qr.make_image(fill_color="black", back_color="white")
+         img.save(filename)
       return redirect(url_for('index'))
    
-   else:
-      flash("table no is not integer")
-      return redirect(url_for("index"))
-
+   else: 
+      return render_template("404.html")
+   
 @app.route('/test')
 def test():
 
