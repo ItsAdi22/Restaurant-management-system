@@ -58,6 +58,10 @@ Images:
 ## Once you are done, submit a pull request
 
 # ---------------------------------------------------------------
+
+## License:
+[Custom License](LICENSE)
+# ---------------------------------------------------------------
 ### <span style="color:green"> My Discord: itsadi22 </span>
 Ask me if you need any help `:wink:`
 
