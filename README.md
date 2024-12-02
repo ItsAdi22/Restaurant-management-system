@@ -1,4 +1,4 @@
-# Hello! This is the first project I created using Flask framework in my second year of engineering.
+# Hello!, This is a **Restaurant Management System** I created in my second year of engineering. 
 
 # ---------------------------------------------------------------
 
