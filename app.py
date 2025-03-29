@@ -16,6 +16,7 @@ import pandas as pd
 # import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
+import json
 
 load_dotenv()
 
@@ -1042,10 +1043,10 @@ def admin():
                elif request.form.get('form_type') == 'admin_manageOrders':
                   adminManageOrders = True
 
-                  cursor.execute('SELECT name,item,price,date,note,tableno,served,stripeid from orders WHERE served = %s',(0,))
+                  cursor.execute('SELECT name,item,quantity,price,date,note,tableno,served,stripeid from orders WHERE served = %s',(0,))
                   pendingorders = cursor.fetchall()
 
-                  cursor.execute('SELECT name,item,price,date,served from orders ORDER BY id DESC')
+                  cursor.execute('SELECT name,item,quantity,price,date,served from orders ORDER BY id DESC')
                   allOrders = cursor.fetchall()
 
                   return render_template('adminmanageorders.html',adminManageOrders=adminManageOrders,pendingorders=pendingorders,allOrders=allOrders,form4=form4,form5=form5)
@@ -1060,10 +1061,10 @@ def admin():
                      cursor.execute('UPDATE orders SET served = 1 WHERE stripeid = %s;',(stripeid,))
                      mysql.connection.commit()
 
-                     cursor.execute('SELECT name,item,price,date,note,tableno,served,stripeid from ORDERS WHERE served = %s',(0,))
+                     cursor.execute('SELECT name,item,quantity,price,date,note,tableno,served,stripeid from ORDERS WHERE served = %s',(0,))
                      pendingorders = cursor.fetchall()
                      
-                     cursor.execute('SELECT name,item,price,date,served from ORDERS ORDER BY id DESC')
+                     cursor.execute('SELECT name,item,quantity,price,date,served from ORDERS ORDER BY id DESC')
                      allOrders = cursor.fetchall()
                      return render_template('adminmanageorders.html',adminManageOrders=adminManageOrders,pendingorders=pendingorders,allOrders=allOrders,form4=form4, form5=form5)
                   
@@ -1080,10 +1081,10 @@ def admin():
                      cursor.execute('UPDATE orders SET served = 2 WHERE stripeid = %s;',(stripeid,))
                      mysql.connection.commit()
 
-                     cursor.execute('SELECT name,item,price,date,note,tableno,served,stripeid from ORDERS WHERE served = %s',(0,))
+                     cursor.execute('SELECT name,item,quantity,price,date,note,tableno,served,stripeid from ORDERS WHERE served = %s',(0,))
                      pendingorders = cursor.fetchall()
                      
-                     cursor.execute('SELECT name,item,price,date,served from orders ORDER BY id DESC')
+                     cursor.execute('SELECT name,item,quantity,price,date,served from orders ORDER BY id DESC')
                      allOrders = cursor.fetchall()
                      return render_template('adminmanageorders.html',adminManageOrders=adminManageOrders,pendingorders=pendingorders,allOrders=allOrders,form4=form4,form5=form5)
 
@@ -1625,7 +1626,7 @@ def success():
 
          try:
             cursor = mysql.connection.cursor()
-            cursor.execute("CREATE TABLE IF NOT EXISTS orders (id INT AUTO_INCREMENT PRIMARY KEY, item VARCHAR(255), price INT(255), name VARCHAR(255), email VARCHAR(255), stripeid VARCHAR(255), date DATE, note VARCHAR(255), tableno INT(255), served INT(255))")
+            cursor.execute("CREATE TABLE IF NOT EXISTS orders (id INT AUTO_INCREMENT PRIMARY KEY, item VARCHAR(255), quantity VARCHAR(20), price INT(255), name VARCHAR(255), email VARCHAR(255), stripeid VARCHAR(255), date DATE, note VARCHAR(255), tableno INT(255), served INT(255))")
 
          except Exception as e:
             flash(f"Database Error: {e}")
@@ -1681,8 +1682,14 @@ def success():
                global additionalNote
                tableno = app.config["tablenum"]
 
-               sql = "INSERT INTO orders(item,price,name,email,stripeid,date,tableno,note,served) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)"
-               value = (itemList_fmt,totalCartVal[0],name,email,checkout_session_id,current_date,tableno,additionalNote,0)
+               cursor.execute("SELECT quantity FROM cart WHERE email = %s",(email,))
+               quantity = cursor.fetchall()
+               quantity = [q[0] for q in quantity]
+               quantity = json.dumps(quantity)
+
+               sql = "INSERT INTO orders(item,quantity,price,name,email,stripeid,date,tableno,note,served) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+               value = (itemList_fmt,quantity,totalCartVal[0],name,email,checkout_session_id,current_date,tableno,additionalNote,0)
+               print(f'====================={value} ============')
                cursor.execute(sql,value)
                mysql.connection.commit()
                

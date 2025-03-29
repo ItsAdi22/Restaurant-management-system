@@ -34,6 +34,7 @@ th, td {
             <tr>
             <th>Name</th>
             <th>Item</th>
+            <th>Quantity</th>
             <th>Amount</th>
             <th>Date</th>
             <th>Additional Note</th>
@@ -41,10 +42,11 @@ th, td {
             <th>Served</th>
             </tr>
 
-            {% for name,item,price,date,note,tableno,served,stripeid in pendingorders %}
+            {% for name,item,quantity,price,date,note,tableno,served,stripeid in pendingorders %}
             <tr>
                 <td>{{name}}</td>  
                 <td>{{item}} </td>
+                <td>{{quantity}}</td>  
                 <td>₹{{price}} </td>
                 <td>{{date}} </td>
                 <td>{{note}} </td>
@@ -84,14 +86,16 @@ th, td {
         <tr>
         <th>Name</th>
         <th>Item</th>
+        <th>Quantity</th>
         <th>Amount</th>
         <th>Date</th>
         <th>Status</th>
         </tr>
-        {% for name,item,price,date,served in allOrders %}
+        {% for name,item,quantity,price,date,served in allOrders %}
         <tr>
             <td>{{name}}</td>  
             <td>{{item}}</td>  
+            <td>{{quantity}}</td>  
             <td>₹{{price}}</td>  
             <td>{{date}}</td>  
             {% if served|string == '0' %} 
