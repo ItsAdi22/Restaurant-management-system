@@ -47,8 +47,8 @@ class StripeKeysForm(FlaskForm):
     submit = SubmitField('Submit')
 
 class MarketingForm(FlaskForm):
-    subject = StringField('Subject', validators=[InputRequired()], render_kw={"placeholder": "Try our delicious new menu items today!"})
-    message = TextAreaField('Message', validators=[InputRequired()], render_kw={"placeholder": "Dear valued customers,\n\nWe are excited to announce that we have added some new and delicious menu items to our restaurant! Come and try our mouth-watering new dishes that are sure to satisfy your taste buds.\n\nWhether you're in the mood for a juicy burger, a hearty pasta dish, or a fresh salad, we've got something for everyone. Our talented chefs have been hard at work creating these new menu items, and we can't wait for you to try them.\n\nSo why not stop by our restaurant today and experience our delicious new menu for yourself? We promise you won't be disappointed!\n\nThank you for your continued patronage.\n\nSincerely,\n[Your Restaurant Name]"})
+    subject = StringField('Subject', validators=[InputRequired()], render_kw={"value": "Try our delicious new menu items today!"})
+    message = TextAreaField('Message', validators=[InputRequired()], default="Dear valued customers,\n\nWe are excited to announce that we have added some new and delicious menu items to our restaurant! Come and try our mouth-watering new dishes that are sure to satisfy your taste buds.\n\nWhether you're in the mood for a juicy burger, a hearty pasta dish, or a fresh salad, we've got something for everyone. Our talented chefs have been hard at work creating these new menu items, and we can't wait for you to try them.\n\nSo why not stop by our restaurant today and experience our delicious new menu for yourself? We promise you won't be disappointed!\n\nThank you for your continued patronage.\n\nSincerely,\nVintage Cafe")
     submit = SubmitField('Send Email!')
 
 class CompleteOrderForm(FlaskForm):
