@@ -1043,43 +1043,46 @@ def admin():
 
 
                elif request.form.get('form_type') == 'admin_manageOrders':
-
                   adminManageOrders = True
-
                   cursor.execute('SELECT name,item,quantity,price,date,note,tableno,served,stripeid from orders WHERE served = %s',(0,))
                   pendingorders = cursor.fetchall()
-
                   cursor.execute('SELECT name,item,quantity,price,date,served from orders ORDER BY id DESC')
                   allOrders = cursor.fetchall()
+                  return render_template('adminmanageorders.html',adminManageOrders=adminManageOrders,pendingorders=pendingorders,allOrders=allOrders,form4=form4,form5=form5,form11=form11)
 
-                  if form11.submit():
-                           # Execute the query to get pending orders
-                           cursor.execute("SELECT item FROM orders WHERE served = 0")
-                           pendingorders2 = cursor.fetchall()
+               elif request.form.get('form_type_audio') == 'form11':
+                  adminManageOrders = True
+                  cursor.execute('SELECT name,item,quantity,price,date,note,tableno,served,stripeid from orders WHERE served = %s',(0,))
+                  pendingorders = cursor.fetchall()
+                  cursor.execute('SELECT name,item,quantity,price,date,served from orders ORDER BY id DESC')
+                  allOrders = cursor.fetchall()
+                  # Execute the query to get pending orders
+                  cursor.execute("SELECT item FROM orders WHERE served = 0")
+                  pendingorders2 = cursor.fetchall()
 
-                           # Function to speak the pending orders
-                           
-                           def speak_pending_orders(orders2):
-                              engine = pyttsx3.init()
-                              if not orders2:
-                                 
-                                 engine.say("NO PENDING ORDERS")
-                                 engine.runAndWait()
-                              
-                              else:
-                                 sentence = "Pending orders are: "
-                                 for x in orders2:
-                                    item = x[0]  
-                                    sentence += f"{item}, "
-                                 engine.say(sentence)
-                                 engine.runAndWait()
+                  # Function to speak the pending orders
+                  
+                  def speak_pending_orders(orders2):
+                     engine = pyttsx3.init()
+                     if not orders2:
+                        
+                        engine.say("NO PENDING ORDERS")
+                        engine.runAndWait()
+                     
+                     else:
+                        sentence = "Pending orders are: "
+                        for x in orders2:
+                           item = x[0]  
+                           sentence += f"{item}, "
+                        engine.say(sentence)
+                        engine.runAndWait()
 
-                           # Function to run the speaking task in a separate thread
-                           def speak_pending_orders_threaded(orders2):
-                              threading.Thread(target=speak_pending_orders, args=(orders2,)).start()
+                  # Function to run the speaking task in a separate thread
+                  def speak_pending_orders_threaded(orders2):
+                     threading.Thread(target=speak_pending_orders, args=(orders2,)).start()
 
-                           # Call the function with threading to avoid blocking
-                           speak_pending_orders_threaded(pendingorders2)
+                  # Call the function with threading to avoid blocking
+                  speak_pending_orders_threaded(pendingorders2)
 
                   return render_template('adminmanageorders.html',adminManageOrders=adminManageOrders,pendingorders=pendingorders,allOrders=allOrders,form4=form4,form5=form5,form11=form11)
 

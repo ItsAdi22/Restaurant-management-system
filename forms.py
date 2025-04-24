@@ -28,7 +28,7 @@ class PaymentForm(FlaskForm):
 #################################### ADMIN ROUTE FORMS BEGINS ####################################
     
 class PlayAudio(FlaskForm):
-    submit = SubmitField('Submit')
+    submit = SubmitField('Play Audio')
 
 class AddFoodForm(FlaskForm):
     foodtitle = StringField('Title', validators=[InputRequired()])
