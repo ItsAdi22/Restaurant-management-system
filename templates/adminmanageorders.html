@@ -28,8 +28,18 @@ th, td {
 	}
 </style> 
 
-<div style="background-color: #f0f0f0; padding: 10px;  border: 1px solid #ccc;">
-    <h2>Pending Orders</h2><br>
+<div style="background-color: #f0f0f0; padding: 10px;  border: 1px solid #ccc; display: fl;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        
+        <h2>Pending Orders</h2>
+        <form action="{{url_for('admin')}}" method="post">
+            <input type="hidden" name="form_type" value="form11">
+            {{ form11.csrf_token }}
+            {{ form11.submit(class="btn btn-primary btn-sm") }}
+        </form>       
+    </div>
+
+    <br>
         <table>
             <tr>
             <th>Name</th>

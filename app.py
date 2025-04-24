@@ -1,6 +1,6 @@
 from flask import Flask, render_template, url_for, redirect, request, session, flash
 from flask_mysqldb import MySQL
-from forms import SignupForm, LoginForm, MenuForm, PaymentForm, AddFoodForm, DeleteFoodForm, StripeKeysForm, MarketingForm, CompleteOrderForm, DeleteOrderForm, LoginAsUserForm, DeleteUserAccForm, AddAdminAccForm, DelAdminAccForm, AdminLoginForm, AdminRegistForm, AdminOTPForm, AdminForgetPassForm, AdminForgetPassOTPForm, AdminSetNewPassForm, AdminPredictSalesForm
+from forms import SignupForm, LoginForm, MenuForm, PaymentForm, AddFoodForm, DeleteFoodForm, StripeKeysForm, MarketingForm, CompleteOrderForm, DeleteOrderForm, LoginAsUserForm, DeleteUserAccForm, AddAdminAccForm, DelAdminAccForm, AdminLoginForm, AdminRegistForm, AdminOTPForm, AdminForgetPassForm, AdminForgetPassOTPForm, AdminSetNewPassForm, AdminPredictSalesForm, PlayAudio
 import stripe
 import datetime
 import threading
@@ -843,6 +843,7 @@ def admin():
                form8 = AddAdminAccForm()
                form9 = DelAdminAccForm()
                form10 = AdminPredictSalesForm()
+               form11 = PlayAudio()
                if request.form.get('form_type') == 'payment_gateway':
                   paymentactive = True
                   return render_template('adminpay.html', apikey=apikey,pubkey=pubkey,paymentactive=paymentactive,form2=form2)   
@@ -1042,6 +1043,7 @@ def admin():
 
 
                elif request.form.get('form_type') == 'admin_manageOrders':
+
                   adminManageOrders = True
 
                   cursor.execute('SELECT name,item,quantity,price,date,note,tableno,served,stripeid from orders WHERE served = %s',(0,))
@@ -1050,33 +1052,38 @@ def admin():
                   cursor.execute('SELECT name,item,quantity,price,date,served from orders ORDER BY id DESC')
                   allOrders = cursor.fetchall()
 
-                  # Execute the query to get pending orders
-                  cursor.execute("SELECT item FROM orders WHERE served = 0")
-                  pendingorders2 = cursor.fetchall()
+                  if form11.submit():
+                           # Execute the query to get pending orders
+                           cursor.execute("SELECT item FROM orders WHERE served = 0")
+                           pendingorders2 = cursor.fetchall()
 
-                  # Function to speak the pending orders
-                  def speak_pending_orders(orders2):
-                     if not orders2:
-                        return
-                     engine = pyttsx3.init()
-                     sentence = "Pending orders are: "
-                     for x in orders2:
-                        item = x[0]  # since fetchall returns list of tuples
-                        sentence += f"{item}, "
-                     engine.say(sentence)
-                     engine.runAndWait()
+                           # Function to speak the pending orders
+                           
+                           def speak_pending_orders(orders2):
+                              engine = pyttsx3.init()
+                              if not orders2:
+                                 
+                                 engine.say("NO PENDING ORDERS")
+                                 engine.runAndWait()
+                              
+                              else:
+                                 sentence = "Pending orders are: "
+                                 for x in orders2:
+                                    item = x[0]  
+                                    sentence += f"{item}, "
+                                 engine.say(sentence)
+                                 engine.runAndWait()
 
-                  # Function to run the speaking task in a separate thread
-                  def speak_pending_orders_threaded(orders2):
-                     threading.Thread(target=speak_pending_orders, args=(orders2,)).start()
+                           # Function to run the speaking task in a separate thread
+                           def speak_pending_orders_threaded(orders2):
+                              threading.Thread(target=speak_pending_orders, args=(orders2,)).start()
 
-                  # Call the function with threading to avoid blocking
-                  speak_pending_orders_threaded(pendingorders2)
+                           # Call the function with threading to avoid blocking
+                           speak_pending_orders_threaded(pendingorders2)
 
+                  return render_template('adminmanageorders.html',adminManageOrders=adminManageOrders,pendingorders=pendingorders,allOrders=allOrders,form4=form4,form5=form5,form11=form11)
 
-
-                  return render_template('adminmanageorders.html',adminManageOrders=adminManageOrders,pendingorders=pendingorders,allOrders=allOrders,form4=form4,form5=form5)
-
+                  
                elif request.form.get('form_type_add') == "form4":
                   if form4.validate_on_submit():
                      adminManageOrders = True
