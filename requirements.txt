@@ -11,3 +11,4 @@ scikit-learn
 #socket #this module is needed for qrcodes to work but it gives error in render.com, therefore it is commented for now
 qrcode
 gunicorn # added for render.com (Experimental)
+pyttsx3 # for playing sound

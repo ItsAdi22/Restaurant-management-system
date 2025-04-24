@@ -17,6 +17,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 import json
+import pyttsx3
 
 load_dotenv()
 
@@ -1048,6 +1049,31 @@ def admin():
 
                   cursor.execute('SELECT name,item,quantity,price,date,served from orders ORDER BY id DESC')
                   allOrders = cursor.fetchall()
+
+                  # Execute the query to get pending orders
+                  cursor.execute("SELECT item FROM orders WHERE served = 0")
+                  pendingorders2 = cursor.fetchall()
+
+                  # Function to speak the pending orders
+                  def speak_pending_orders(orders2):
+                     if not orders2:
+                        return
+                     engine = pyttsx3.init()
+                     sentence = "Pending orders are: "
+                     for x in orders2:
+                        item = x[0]  # since fetchall returns list of tuples
+                        sentence += f"{item}, "
+                     engine.say(sentence)
+                     engine.runAndWait()
+
+                  # Function to run the speaking task in a separate thread
+                  def speak_pending_orders_threaded(orders2):
+                     threading.Thread(target=speak_pending_orders, args=(orders2,)).start()
+
+                  # Call the function with threading to avoid blocking
+                  speak_pending_orders_threaded(pendingorders2)
+
+
 
                   return render_template('adminmanageorders.html',adminManageOrders=adminManageOrders,pendingorders=pendingorders,allOrders=allOrders,form4=form4,form5=form5)
 
