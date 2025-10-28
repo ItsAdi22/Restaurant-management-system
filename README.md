@@ -1,4 +1,4 @@
-# Hello!, This is a **Restaurant Management System** I created in my second year of engineering. 
+# Hello!, This is a **Restaurant Management System with ML** project which I created in my second year of engineering. 
 
 # ---------------------------------------------------------------
 
